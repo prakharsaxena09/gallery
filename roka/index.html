@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Prakhar ❤️ Pranjali — Roka Invite</title>
+  <meta name="description" content="With love & blessings, we invite you to the Roka of Prakhar & Pranjali — 27 November 2026, Rooftop, ITC Fortune, Lucknow." />
+
+  <!-- WhatsApp / social preview -->
+  <meta property="og:title" content="Prakhar ❤️ Pranjali — Aapko pyaar bhara nyota 💌" />
+  <meta property="og:description" content="Hum ho rahe hain Roka! 27 Nov 2026 • Rooftop, ITC Fortune, Lucknow • 6 PM onwards. Tap to unwrap your shagun." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/img/couple-placeholder.svg" />
+  <meta name="theme-color" content="#0b1030" />
+
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg" />
+
+  <!-- Fonts: romantic script + elegant serif + clean body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Marcellus&family=Poppins:wght@300;400;500;600&family=Tangerine:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="theme-rooftop is-locked">
+
+  <!-- ===== Floating controls ===== -->
+  <div class="controls" aria-hidden="false">
+    <button id="muteBtn" class="ctrl-btn" title="Music on/off" aria-label="Toggle music">🔊</button>
+    <button id="themeBtn" class="ctrl-btn" title="Change theme" aria-label="Change theme">🎨</button>
+  </div>
+
+  <!-- Theme switcher tray -->
+  <div id="themeTray" class="theme-tray" role="menu" aria-label="Choose a theme" hidden>
+    <button class="theme-swatch sw-rooftop" data-theme="theme-rooftop" role="menuitem">Starry Rooftop</button>
+    <button class="theme-swatch sw-nawabi"  data-theme="theme-nawabi"  role="menuitem">Nawabi Lucknowi</button>
+    <button class="theme-swatch sw-pastel"  data-theme="theme-pastel"  role="menuitem">Pastel Phoolon</button>
+    <button class="theme-swatch sw-retro"   data-theme="theme-retro"   role="menuitem">Retro Bollywood</button>
+  </div>
+
+  <!-- Background motif layer (changes per theme) -->
+  <div class="bg-motif" aria-hidden="true">
+    <div class="motif-stars"></div>
+    <div class="motif-moon"></div>
+    <div class="motif-petals"></div>
+  </div>
+
+  <!-- ===== 1. SHAGUN UNWRAP (entry overlay) ===== -->
+  <div id="unwrap" class="unwrap">
+    <div class="unwrap-inner">
+      <div class="shagun-box" id="shagunBox">
+        <div class="lid"><span class="lid-knot">❀</span></div>
+        <div class="box-body">
+          <span class="box-shine"></span>
+          <span class="box-label">शगुन</span>
+        </div>
+      </div>
+      <p class="unwrap-kicker">Kuch khaas hai aapke naam 💌</p>
+      <h1 class="unwrap-title">Aapke liye ek pyaara sa nyota</h1>
+      <button id="unwrapBtn" class="unwrap-btn">Tap to unwrap ✨</button>
+      <p class="unwrap-hint">(thodi si romantic music ke saath 🎵)</p>
+    </div>
+  </div>
+
+  <!-- ===== MAIN INVITE ===== -->
+  <main id="invite" class="invite" aria-hidden="true">
+
+    <!-- 2. HERO -->
+    <section class="hero reveal" id="hero">
+      <p class="hero-kicker reveal-child">With the blessings of the Almighty &amp; our families</p>
+      <div class="names reveal-child">
+        <span class="name name-l">Prakhar</span>
+        <span class="amp">❤</span>
+        <span class="name name-r">Pranjali</span>
+      </div>
+      <p class="hero-sub reveal-child">Hum ho rahe hain <strong>Roka</strong>! 🎉</p>
+      <div class="hero-line reveal-child"></div>
+      <p class="hero-mini reveal-child">Do dilon ki kahani ka pehla adhyaay</p>
+      <div class="scroll-cue reveal-child" aria-hidden="true">
+        <span>scroll kijiye</span><span class="chev">⌄</span>
+      </div>
+    </section>
+
+    <!-- 3. PERSONALIZED GREETING -->
+    <section class="greeting reveal" id="greeting">
+      <div class="card reveal-child">
+        <p class="greet-hi">Dear <span id="guestName">Aap</span>,</p>
+        <p class="greet-body">
+          aap toh humare apne ho — aur is khushi ke mauke par aapki dua aur
+          shirkat ke bina yeh lamha adhoora hai. Isliye dil se, pyaar se,
+          yeh nyota sabse pehle aapko. 💛
+        </p>
+      </div>
+    </section>
+
+    <!-- 4. A LITTLE STORY -->
+    <section class="story reveal" id="story">
+      <div class="story-beat reveal-child"><span class="emoji">🏙️</span><p>Do shehar, do parivaar...</p></div>
+      <div class="story-beat reveal-child"><span class="emoji">💫</span><p>...ek pyaari si <em>“haan”</em>.</p></div>
+      <div class="story-beat reveal-child"><span class="emoji">🤝</span><p>Saxena &amp; Jain — ab ek nayi kahani shuru hoti hai.</p></div>
+    </section>
+
+    <!-- 5. FAMILIES -->
+    <section class="families reveal" id="families">
+      <p class="fam-head reveal-child">With love &amp; blessings from</p>
+      <div class="fam-grid">
+        <div class="fam-card reveal-child">
+          <h3>Saxena Parivaar</h3>
+          <p class="fam-of">Son of</p>
+          <p class="fam-names">Mr. Dharmendra Saxena<br/>&amp; Mrs. Archana Saxena</p>
+          <p class="fam-who">— proud parents of <strong>Prakhar</strong></p>
+        </div>
+        <div class="fam-knot reveal-child" aria-hidden="true">
+          <span class="knot">🪢</span>
+        </div>
+        <div class="fam-card reveal-child">
+          <h3>Jain Parivaar</h3>
+          <p class="fam-of">Daughter of</p>
+          <p class="fam-names">Mr. Alok Jain<br/>&amp; Mrs. Chhavi Jain</p>
+          <p class="fam-who">— proud parents of <strong>Pranjali</strong></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. JIGSAW DELIGHT -->
+    <section class="jigsaw-section reveal" id="jigsaw">
+      <h2 class="sec-title reveal-child">Ek pyaari si tasveer 🧩</h2>
+      <p class="sec-sub reveal-child">...thodi bikhri hui hai. Jodiye aur celebration unlock kijiye!</p>
+      <div id="puzzleStage" class="puzzle-stage reveal-child">
+        <div id="puzzleBoard" class="puzzle-board" aria-label="Jigsaw puzzle of the couple"></div>
+      </div>
+      <div class="puzzle-actions reveal-child">
+        <button id="shuffleBtn" class="btn ghost">Shuffle 🔀</button>
+        <button id="skipPuzzleBtn" class="btn ghost">Skip &amp; reveal →</button>
+      </div>
+      <p id="puzzleWin" class="puzzle-win" hidden>Ho gaya! ❤️ Ab milte hain celebration par 👇</p>
+    </section>
+
+    <!-- 7. EVENT DETAILS (locked until puzzle done/skipped) -->
+    <section class="details reveal is-veiled" id="details">
+      <div class="veil" id="detailsVeil"><span>🔒 Pehle tasveer jodiye ✨</span></div>
+      <h2 class="sec-title reveal-child">Save the Date 🗓️</h2>
+      <div class="detail-card reveal-child">
+        <p class="d-event">Roka Ceremony</p>
+        <p class="d-date">Shukravaar, 27 November 2026</p>
+        <p class="d-time">Sham 6 baje se (6:00 PM onwards)</p>
+        <p class="d-venue">Rooftop, <strong>ITC Fortune</strong><br/>Lucknow, Uttar Pradesh</p>
+
+        <div id="countdown" class="countdown" aria-live="polite">
+          <div><span id="cd-days">--</span><small>din</small></div>
+          <div><span id="cd-hrs">--</span><small>ghante</small></div>
+          <div><span id="cd-min">--</span><small>minute</small></div>
+          <div><span id="cd-sec">--</span><small>second</small></div>
+        </div>
+
+        <div class="detail-actions">
+          <a id="calBtn" class="btn solid" href="#" download="Prakhar-Pranjali-Roka.ics">📅 Add to Calendar</a>
+          <a id="mapBtn" class="btn solid" target="_blank" rel="noopener"
+             href="https://www.google.com/maps/search/?api=1&query=ITC+Fortune+Lucknow">📍 Get Directions</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. RSVP / BLESSINGS -->
+    <section class="rsvp reveal" id="rsvp">
+      <h2 class="sec-title reveal-child">Aa rahe ho na? 🥹</h2>
+      <p class="sec-sub reveal-child">Apna pyaar aur aashirwad zaroor bhejiye — aapki haan hi humari khushi hai.</p>
+      <div class="rsvp-actions reveal-child">
+        <a id="rsvpBtn" class="btn solid big" target="_blank" rel="noopener" href="#">💚 Bless on WhatsApp</a>
+        <button id="shareBtn" class="btn ghost big">↗️ Share this invite</button>
+      </div>
+    </section>
+
+    <!-- 9. FOOTER -->
+    <footer class="footer reveal">
+      <p class="foot-hash reveal-child">#PrakharKiPranjali</p>
+      <p class="foot-made reveal-child">Banaya gaya bahut saare pyaar se 💛</p>
+      <p class="foot-tiny reveal-child">Prakhar &amp; Pranjali • 27.11.2026 • Lucknow</p>
+    </footer>
+  </main>
+
+  <script src="js/puzzle.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
