@@ -1,0 +1,86 @@
+---
+/**
+ * Monogram.astro — the PP cipher used on the box, the wax seal and the paper.
+ * Drawn as an ornamental ring framing the couple's initials with a small heart,
+ * echoing the seal styles on the Asset Library board.
+ */
+import { content } from '@config/content';
+
+interface Props {
+  size?: number;
+  /** 'foil' = champagne gradient · 'emboss' = tonal relief on wax/paper */
+  tone?: 'foil' | 'emboss' | 'ink';
+  class?: string;
+}
+const { size = 96, tone = 'foil', class: className = '' } = Astro.props;
+const initials = content.couple.monogram.split('');
+const a = initials[0] ?? 'P';
+const b = initials[1] ?? 'P';
+
+const stroke =
+  tone === 'foil' ? 'url(#foil)' : tone === 'ink' ? '#4c372e' : 'rgba(246,241,231,0.7)';
+const fill = stroke;
+const op = tone === 'emboss' ? 0.85 : 1;
+---
+
+<svg
+  class={`monogram ${className}`}
+  width={size}
+  height={size}
+  viewBox="0 0 100 100"
+  role="img"
+  aria-label={`${a} and ${b} monogram`}
+  style={`--mono-op:${op}`}
+>
+  <!-- double ring -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke={stroke} stroke-width="1.1" opacity="0.9" />
+  <circle cx="50" cy="50" r="40.5" fill="none" stroke={stroke} stroke-width="0.6" opacity="0.6" />
+
+  <!-- laurel ticks around the ring -->
+  {
+    Array.from({ length: 24 }).map((_, i) => {
+      const ang = (i / 24) * Math.PI * 2;
+      const x1 = 50 + Math.cos(ang) * 42.7;
+      const y1 = 50 + Math.sin(ang) * 42.7;
+      const x2 = 50 + Math.cos(ang) * 44.2;
+      const y2 = 50 + Math.sin(ang) * 44.2;
+      return <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={stroke} stroke-width="0.5" opacity="0.45" />;
+    })
+  }
+
+  <!-- initials -->
+  <text
+    x="35"
+    y="62"
+    text-anchor="middle"
+    fill={fill}
+    font-family="'Cormorant Garamond', Georgia, serif"
+    font-weight="600"
+    font-size="44"
+    opacity="0.96"
+  >{a}</text>
+  <text
+    x="65"
+    y="62"
+    text-anchor="middle"
+    fill={fill}
+    font-family="'Cormorant Garamond', Georgia, serif"
+    font-weight="600"
+    font-size="44"
+    opacity="0.96"
+  >{b}</text>
+
+  <!-- small heart between -->
+  <path
+    d="M50 40.5c-1.4-2.4-5.4-2.2-5.4 1 0 2.3 3 4.3 5.4 6.1 2.4-1.8 5.4-3.8 5.4-6.1 0-3.2-4-3.4-5.4-1z"
+    fill={fill}
+    opacity="0.85"
+  />
+</svg>
+
+<style>
+  .monogram {
+    display: block;
+    opacity: var(--mono-op, 1);
+  }
+</style>

@@ -1,0 +1,161 @@
+---
+/**
+ * Scene 03 — Personalized Greeting. Uses ?to= to address the guest by name,
+ * "written" in ink (a left-to-right reveal with a travelling nib). The couple's
+ * names carry a subtle gold-foil shimmer. (SCREEN_BOOK Scene 03.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import PaperCard from '@components/ui/PaperCard.astro';
+import GoldText from '@components/ui/GoldText.astro';
+import GoldDivider from '@art/GoldDivider.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+import Floral from '@art/Floral.astro';
+import { content } from '@config/content';
+---
+
+<SceneShell id="greeting" labelledby="greeting-name">
+  <PaperCard class="greeting" corners={true}>
+    <p class="t-label greeting__salutation" data-fade>{content.greeting.salutation}</p>
+
+    <h1 class="t-display greeting__name" id="greeting-name" data-guest>
+      <span class="greeting__ink" data-ink>{content.greeting.defaultGuest}</span>
+    </h1>
+
+    <GoldDivider width={150} class="greeting__rule" />
+
+    <p class="t-body greeting__line" data-fade>{content.greeting.line}</p>
+
+    <p class="greeting__couple t-heading" data-fade>
+      With love,<br />
+      <GoldText shimmer={true}>{content.couple.groom.name} &amp; {content.couple.bride.name}</GoldText>
+    </p>
+
+    <Floral flower="lotus" variant="bloom" size={40} class="greeting__seal-flower" />
+  </PaperCard>
+
+  <Fragment slot="foot">
+    <ContinueCue label="Continue" />
+  </Fragment>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur, rd } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { resolveGuest } from '@lib/personalize';
+  import { store } from '@lib/store';
+
+  registerScene('greeting', (root) => {
+    const ink = root.querySelector<HTMLElement>('[data-ink]')!;
+    const fades = Array.from(root.querySelectorAll<HTMLElement>('[data-fade]'));
+    const flower = root.querySelector<HTMLElement>('.greeting__seal-flower')!;
+    let written = false;
+
+    function applyGuest() {
+      const { guest } = resolveGuest();
+      ink.textContent = guest;
+      store.set({ guest });
+    }
+
+    function writeName() {
+      if (prefersReducedMotion()) {
+        gsap.set(ink, { clipPath: 'inset(0 0 0 0)', autoAlpha: 1 });
+        return;
+      }
+      gsap.fromTo(
+        ink,
+        { clipPath: 'inset(0 100% 0 0)', autoAlpha: 1 },
+        { clipPath: 'inset(0 0% 0 0)', duration: 1.5, ease: 'power1.inOut' },
+      );
+      // travelling nib glow
+      ink.classList.add('is-writing');
+      gsap.delayedCall(1.6, () => ink.classList.remove('is-writing'));
+    }
+
+    return {
+      init() {
+        applyGuest();
+      },
+      preload() {
+        applyGuest();
+      },
+      enter() {
+        applyGuest();
+        gsap.set(fades, { autoAlpha: 0, y: 12 });
+        gsap.set(flower, { autoAlpha: 0, scale: 0.6 });
+        // salutation first
+        gsap.to(fades[0]!, { autoAlpha: 1, y: 0, duration: dur(DUR.card), ease: EASE.out });
+        // then write the name
+        gsap.delayedCall(prefersReducedMotion() ? 0.1 : 0.5, () => {
+          if (!written) {
+            writeName();
+            written = true;
+          }
+        });
+        // then the rest, sequentially
+        gsap.to(fades.slice(1), {
+          autoAlpha: 1,
+          y: 0,
+          duration: dur(DUR.card),
+          stagger: rd(0.25),
+          delay: prefersReducedMotion() ? 0.15 : 1.9,
+          ease: EASE.out,
+        });
+        gsap.to(flower, { autoAlpha: 0.9, scale: 1, duration: dur(DUR.card), delay: prefersReducedMotion() ? 0.2 : 2.4, ease: EASE.out });
+      },
+      exit() {},
+      destroy() {},
+    };
+  });
+</script>
+
+<style>
+  .greeting {
+    width: 330px;
+    max-width: 86vw;
+    padding-block: var(--sp-6) var(--sp-5);
+  }
+  .greeting__salutation {
+    color: var(--clr-old-gold);
+    font-size: var(--fs-14);
+  }
+  .greeting__name {
+    font-size: clamp(2.6rem, 13vw, var(--fs-64));
+    color: var(--clr-coffee);
+    margin-block: var(--sp-2);
+    line-height: 1;
+    min-height: 1.1em;
+  }
+  .greeting__ink {
+    display: inline-block;
+    position: relative;
+  }
+  .greeting__ink.is-writing::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 12%;
+    width: 6px;
+    height: 76%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(184, 138, 66, 0.9), transparent 70%);
+    filter: blur(1px);
+  }
+  .greeting__rule {
+    margin-block: var(--sp-2) var(--sp-3);
+  }
+  .greeting__line {
+    color: var(--ink-soft);
+    max-width: 26ch;
+    margin-inline: auto;
+  }
+  .greeting__couple {
+    margin-top: var(--sp-4);
+    font-size: var(--fs-20);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .greeting__seal-flower {
+    margin: var(--sp-3) auto 0;
+  }
+</style>

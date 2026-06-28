@@ -1,0 +1,21 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["src/config/*"],
+      "@lib/*": ["src/lib/*"],
+      "@components/*": ["src/components/*"],
+      "@art/*": ["src/components/art/*"],
+      "@scenes/*": ["src/components/scenes/*"],
+      "@styles/*": ["src/styles/*"],
+      "@layouts/*": ["src/layouts/*"]
+    }
+  },
+  "include": ["src", "astro.config.mjs"],
+  "exclude": ["dist", "node_modules"]
+}

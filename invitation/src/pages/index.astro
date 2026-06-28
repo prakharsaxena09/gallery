@@ -1,0 +1,57 @@
+---
+/**
+ * index.astro — assembles the chrome and all ten chapters onto the stage, then
+ * boots the single scene controller. Scene order is fixed by the controller
+ * (config/theme.ts); each scene self-registers its handlers via its own script.
+ */
+import Base from '@layouts/Base.astro';
+import ProgressDots from '@components/ui/ProgressDots.astro';
+import AudioToggle from '@components/ui/AudioToggle.astro';
+
+import Scene01Arrival from '@components/scenes/Scene01Arrival.astro';
+import Scene02Seal from '@components/scenes/Scene02Seal.astro';
+import Scene03Greeting from '@components/scenes/Scene03Greeting.astro';
+import Scene04Story from '@components/scenes/Scene04Story.astro';
+import Scene05Couple from '@components/scenes/Scene05Couple.astro';
+import Scene06Families from '@components/scenes/Scene06Families.astro';
+import Scene07Celebration from '@components/scenes/Scene07Celebration.astro';
+import Scene08Details from '@components/scenes/Scene08Details.astro';
+import Scene09Rsvp from '@components/scenes/Scene09Rsvp.astro';
+import Scene10Farewell from '@components/scenes/Scene10Farewell.astro';
+---
+
+<Base>
+  <ProgressDots />
+  <AudioToggle />
+
+  <Scene01Arrival />
+  <Scene02Seal />
+  <Scene03Greeting />
+  <Scene04Story />
+  <Scene05Couple />
+  <Scene06Families />
+  <Scene07Celebration />
+  <Scene08Details />
+  <Scene09Rsvp />
+  <Scene10Farewell />
+</Base>
+
+<script>
+  import { controller } from '@lib/scene-controller';
+
+  // Global, delegated page-turn affordance for any [data-action="next"|"prev"].
+  document.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement)?.closest('[data-action]');
+    if (!el) return;
+    const action = el.getAttribute('data-action');
+    if (action === 'next') controller.next();
+    else if (action === 'prev') controller.prev();
+  });
+
+  const boot = () => controller.mount();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+</script>

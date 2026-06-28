@@ -1,0 +1,118 @@
+---
+/**
+ * VenueRooftop.astro — F-series venue art: the ITC Fortune rooftop at blue hour
+ * (skyline, pool with reflections, floral stage, lantern strings, dining and a
+ * photo alcove). Layered so Scene 7 can slow-pan the camera and animate the
+ * pool. Hotspot buttons are positioned over this art by the scene using the
+ * coordinates in content.ts (stage centre, dining left, pool right, photo upper-right).
+ */
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+
+<div class={`venue ${className}`} data-part="venue-stage">
+  <svg viewBox="0 0 390 320" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of the ITC Fortune rooftop venue at dusk">
+    <!-- sky -->
+    <defs>
+      <linearGradient id="venue-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2a3a5c" />
+        <stop offset="55%" stop-color="#3a4a68" />
+        <stop offset="100%" stop-color="#5a5470" />
+      </linearGradient>
+      <linearGradient id="venue-pool" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2c4a55" />
+        <stop offset="100%" stop-color="#1d3540" />
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="390" height="210" fill="url(#venue-sky)" />
+    <!-- moon -->
+    <circle cx="316" cy="52" r="20" fill="#f3ead0" opacity="0.92" />
+    <circle cx="316" cy="52" r="28" fill="#f3ead0" opacity="0.12" />
+
+    <!-- distant skyline -->
+    <g fill="#1d2b44" opacity="0.85">
+      <rect x="0" y="150" width="40" height="60" />
+      <rect x="44" y="132" width="26" height="78" />
+      <!-- a soft dome (Awadhi silhouette) -->
+      <path d="M84 150c0-14 10-24 22-24s22 10 22 24z" />
+      <rect x="84" y="150" width="44" height="60" />
+      <path d="M106 112c2 6 2 10 0 14-2-4-2-8 0-14z" />
+      <rect x="150" y="140" width="30" height="70" />
+      <rect x="300" y="146" width="34" height="64" />
+      <rect x="340" y="158" width="50" height="52" />
+    </g>
+
+    <!-- rooftop deck -->
+    <rect x="0" y="206" width="390" height="114" fill="#2a2233" />
+    <rect x="0" y="206" width="390" height="10" fill="#3a2f44" />
+
+    <!-- marble floor pattern -->
+    <g stroke="#4a3d52" stroke-width="1" opacity="0.5">
+      <path d="M0 246h390M0 282h390" />
+      <path d="M60 216v104M150 216v104M240 216v104M330 216v104" />
+    </g>
+
+    <!-- POOL (right) with animated reflection band -->
+    <g>
+      <rect x="232" y="234" width="132" height="60" rx="6" fill="url(#venue-pool)" />
+      <rect x="232" y="234" width="132" height="60" rx="6" fill="none" stroke="#c8a86b" stroke-width="1.4" opacity="0.6" />
+      <g data-part="pool-reflection" opacity="0.6">
+        <rect x="244" y="244" width="108" height="3" rx="1.5" fill="#e6cf9b" opacity="0.5" />
+        <rect x="252" y="258" width="92" height="2.4" rx="1.2" fill="#f3e3bd" opacity="0.4" />
+        <rect x="248" y="272" width="100" height="2.4" rx="1.2" fill="#c8a86b" opacity="0.35" />
+      </g>
+    </g>
+
+    <!-- STAGE / mandap (centre) -->
+    <g>
+      <rect x="150" y="150" width="92" height="66" rx="4" fill="#241c2f" />
+      <!-- four posts + canopy arch -->
+      <path d="M158 216V150M234 216V150" stroke="url(#foil)" stroke-width="2.4" />
+      <path d="M150 152c14-18 78-18 92 0" fill="none" stroke="url(#foil)" stroke-width="2.4" />
+      <path d="M150 152c14-12 78-12 92 0" fill="none" stroke="#caa2a5" stroke-width="3" opacity="0.6" />
+      <!-- floral garlands -->
+      <path d="M158 150c10 8 66 8 76 0" fill="none" stroke="#caa2a5" stroke-width="3" opacity="0.7" />
+      <circle cx="196" cy="158" r="3" fill="#e6cf9b" />
+      <!-- two seats hint -->
+      <rect x="182" y="186" width="12" height="22" rx="3" fill="#7e2530" />
+      <rect x="198" y="186" width="12" height="22" rx="3" fill="#7e2530" />
+    </g>
+
+    <!-- DINING (left) -->
+    <g>
+      <ellipse cx="62" cy="250" rx="34" ry="12" fill="#3a2f44" />
+      <rect x="40" y="234" width="44" height="18" rx="3" fill="#f1e7d3" opacity="0.9" />
+      <circle cx="50" cy="232" r="3" fill="url(#flame)" />
+      <circle cx="74" cy="232" r="3" fill="url(#flame)" />
+    </g>
+
+    <!-- PHOTO alcove (upper right) -->
+    <g>
+      <path d="M300 132c0-12 8-20 18-20s18 8 18 20v40h-36z" fill="#241c2f" />
+      <path d="M300 132c0-12 8-20 18-20s18 8 18 20" fill="none" stroke="url(#foil)" stroke-width="1.6" />
+      <circle cx="318" cy="150" r="8" fill="#caa2a5" opacity="0.7" />
+    </g>
+
+    <!-- lantern strings -->
+    <g>
+      <path d="M0 120c80 30 230 30 390 6" fill="none" stroke="#6a5247" stroke-width="0.8" opacity="0.5" />
+      {Array.from({ length: 9 }).map((_, i) => {
+        const x = 30 + i * 42;
+        const y = 130 + Math.sin((i / 8) * Math.PI) * 14;
+        return <g><line x1={x} y1={y - 12} x2={x} y2={y} stroke="#6a5247" stroke-width="0.6" /><circle cx={x} cy={y} r="3.4" fill="url(#flame)" /></g>;
+      })}
+    </g>
+  </svg>
+</div>
+
+<style>
+  .venue {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .venue svg { width: 100%; height: 100%; }
+</style>

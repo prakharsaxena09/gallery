@@ -1,0 +1,56 @@
+---
+/**
+ * Envelope.astro — H005 royal envelope for the RSVP scene. #env-flap opens on a
+ * top hinge; #env-card is the invitation card that rises from inside. Gold-lined
+ * archival paper with a small wax dot.
+ */
+interface Props {
+  width?: number;
+  class?: string;
+}
+const { width = 300, class: className = '' } = Astro.props;
+---
+
+<div class={`envelope ${className}`} style={`--w:${width}px`}>
+  <svg viewBox="0 0 300 210" width="100%" height="100%" role="img" aria-label="A royal envelope">
+    <!-- body -->
+    <rect x="20" y="46" width="260" height="150" rx="8" fill="url(#paper)" filter="url(#soft-shadow)" />
+    <rect x="20" y="46" width="260" height="150" rx="8" fill="none" stroke="#c8a86b" stroke-width="1.2" opacity="0.6" />
+
+    <!-- card inside (rises) -->
+    <g id="env-card">
+      <rect x="40" y="40" width="220" height="120" rx="6" fill="#fbf8f3" filter="url(#soft-shadow-sm)" />
+      <rect x="48" y="48" width="204" height="104" rx="4" fill="none" stroke="url(#foil)" stroke-width="1" opacity="0.7" />
+      <line x1="78" y1="74" x2="222" y2="74" stroke="#caa2a5" stroke-width="1" opacity="0.5" />
+      <line x1="92" y1="90" x2="208" y2="90" stroke="#c8a86b" stroke-width="0.8" opacity="0.45" />
+      <line x1="100" y1="104" x2="200" y2="104" stroke="#caa2a5" stroke-width="0.8" opacity="0.4" />
+      <line x1="112" y1="118" x2="188" y2="118" stroke="#c8a86b" stroke-width="0.8" opacity="0.4" />
+    </g>
+
+    <!-- lower pocket (in front of the card) -->
+    <path d="M20 196l130-86 130 86z" fill="url(#paper)" opacity="0.001" />
+    <path d="M20 196l130-78 130 78V196a8 8 0 0 1-8 8H28a8 8 0 0 1-8-8z" fill="#f1e7d3" />
+    <path d="M20 196l130-78 130 78" fill="none" stroke="#c8a86b" stroke-width="1" opacity="0.5" />
+
+    <!-- side seams -->
+    <path d="M20 54l108 64M280 54L172 118" fill="none" stroke="#e0d3b6" stroke-width="1" opacity="0.6" />
+
+    <!-- flap (opens) -->
+    <g id="env-flap" style="transform-box: fill-box; transform-origin: 50% 0%;">
+      <path d="M20 54l130 80 130-80V52a6 6 0 0 0-6-6H26a6 6 0 0 0-6 6z" fill="#efe2c6" />
+      <path d="M20 54l130 80 130-80" fill="none" stroke="url(#foil)" stroke-width="1.2" opacity="0.7" />
+      <!-- wax dot -->
+      <circle cx="150" cy="92" r="13" fill="url(#wax)" />
+      <circle cx="150" cy="92" r="9" fill="none" stroke="#5b1822" stroke-width="1" opacity="0.5" />
+    </g>
+  </svg>
+</div>
+
+<style>
+  .envelope {
+    width: var(--w);
+    max-width: 100%;
+    aspect-ratio: 300 / 210;
+  }
+  .envelope svg { overflow: visible; }
+</style>

@@ -1,0 +1,59 @@
+---
+/**
+ * AudioToggle.astro — the single audio control (off by default, user-initiated —
+ * MOTION_BOOK §Audio). Pinned to the safe top-right. The first activation is the
+ * user gesture that unlocks playback for the whole experience.
+ */
+import Icon from '@art/Icon.astro';
+---
+
+<button type="button" class="audio-toggle" data-audio-toggle aria-pressed="false" aria-label="Turn ambient sound on">
+  <span class="audio-toggle__on" aria-hidden="true"><Icon name="sound" size={22} /></span>
+  <span class="audio-toggle__off" aria-hidden="true"><Icon name="sound-off" size={22} /></span>
+</button>
+
+<script>
+  import { audio } from '@lib/audio';
+  import { haptic } from '@lib/haptics';
+
+  const btn = document.querySelector<HTMLButtonElement>('[data-audio-toggle]');
+  if (btn) {
+    audio.init();
+    const render = () => {
+      const on = audio.isEnabled();
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.setAttribute('aria-label', on ? 'Turn ambient sound off' : 'Turn ambient sound on');
+      btn.classList.toggle('is-on', on);
+    };
+    btn.addEventListener('click', () => {
+      audio.setEnabled(!audio.isEnabled());
+      haptic('light');
+      render();
+    });
+    render();
+  }
+</script>
+
+<style>
+  .audio-toggle {
+    position: fixed;
+    top: max(var(--sp-2), env(safe-area-inset-top));
+    right: max(var(--sp-2), env(safe-area-inset-right));
+    z-index: var(--z-chrome);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: var(--scene-on, #efe8dc);
+    background: rgba(22, 34, 57, 0.28);
+    backdrop-filter: blur(2px);
+    transition: transform var(--mt-tap) var(--ease-out);
+  }
+  .audio-toggle:active { transform: scale(0.94); }
+  .audio-toggle__on { display: none; }
+  .audio-toggle.is-on .audio-toggle__on { display: block; }
+  .audio-toggle.is-on .audio-toggle__off { display: none; }
+  .audio-toggle .audio-toggle__off { display: block; }
+  .audio-toggle.is-on .audio-toggle__off { display: none; }
+</style>

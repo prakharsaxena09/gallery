@@ -1,0 +1,150 @@
+---
+/**
+ * CoupleFigure.astro — editorial portraits of Prakhar (cream bandhgala) and
+ * Pranjali (mauve saree, pearl jewellery, dupatta), per the Couple Library and
+ * character direction (confident/warm · graceful/joyful; subtle expressions).
+ *
+ * Stylised, semi-realistic, NOT photoreal — one brush language across both.
+ * Layered for ambient idle motion (data-part):
+ *   chest  — breathing · eye-l/eye-r — blink · brow — micro · mouth — smile
+ *   dupatta — cloth sway · sparkle — jewellery glint
+ */
+interface Props {
+  who: 'groom' | 'bride';
+  width?: number;
+  class?: string;
+}
+const { who, width = 200, class: className = '' } = Astro.props;
+const isGroom = who === 'groom';
+
+const skin = isGroom ? '#e7b48c' : '#ecc09a';
+const skinShade = isGroom ? '#cf9a73' : '#d9a884';
+const hair = '#2a1d16';
+const hairHi = '#46332560';
+const label = isGroom ? 'Illustrated portrait of Prakhar' : 'Illustrated portrait of Pranjali';
+---
+
+<div class={`figure figure--${who} ${className}`} style={`--w:${width}px`}>
+  <svg viewBox="0 0 200 270" width="100%" height="100%" role="img" aria-label={label}>
+    <!-- soft ground shadow -->
+    <ellipse cx="100" cy="258" rx="66" ry="10" fill="#000" opacity="0.18" />
+
+    <!-- ===== TORSO / ATTIRE ===== -->
+    <g data-part="chest" style="transform-box: fill-box; transform-origin: 50% 100%;">
+      {isGroom ? (
+        <g>
+          <!-- bandhgala body -->
+          <path d="M52 270c0-44 14-74 48-74s48 30 48 74z" fill="#efe4cf" />
+          <path d="M52 270c0-44 14-74 48-74s48 30 48 74z" fill="none" stroke="#d8c7a6" stroke-width="1" />
+          <!-- jacket centre + mandarin collar -->
+          <path d="M100 196c-9 6-13 16-13 28v46h26v-46c0-12-4-22-13-28z" fill="#e7d8bb" />
+          <path d="M100 198v72" stroke="#cdb98f" stroke-width="1.2" />
+          <path d="M86 206c8-6 20-6 28 0" fill="none" stroke="#cdb98f" stroke-width="1.4" />
+          <!-- gold buttons -->
+          <circle cx="100" cy="216" r="2.2" fill="url(#foil)" />
+          <circle cx="100" cy="230" r="2.2" fill="url(#foil)" />
+          <circle cx="100" cy="244" r="2.2" fill="url(#foil)" />
+          <!-- boutonniere -->
+          <circle cx="118" cy="214" r="5" fill="#caa2a5" />
+          <circle cx="118" cy="214" r="2" fill="#e6cf9b" />
+        </g>
+      ) : (
+        <g>
+          <!-- saree blouse + drape -->
+          <path d="M52 270c0-42 14-72 48-72s48 30 48 72z" fill="#9a6f86" />
+          <path d="M52 270c0-42 14-72 48-72s48 30 48 72z" fill="none" stroke="#7d586e" stroke-width="1" />
+          <!-- pallu highlight -->
+          <path d="M100 198c-10 6-14 18-14 30v42h-18c0-30 10-58 32-72z" fill="#caa2a5" opacity="0.9" />
+          <!-- gold border on pallu -->
+          <path d="M70 264c8-26 18-48 30-62" fill="none" stroke="url(#foil)" stroke-width="2" opacity="0.85" />
+          <path d="M100 200v70" stroke="#7d586e" stroke-width="0.8" opacity="0.6" />
+        </g>
+      )}
+    </g>
+
+    <!-- ===== NECK ===== -->
+    <path d="M88 186h24v18c0 7-24 7-24 0z" fill={skinShade} />
+    <path d="M88 186h24v10c-12 5-12 5-24 0z" fill={skin} />
+
+    <!-- pearl necklace (bride) -->
+    {!isGroom && (
+      <g>
+        {Array.from({ length: 11 }).map((_, i) => (
+          <circle cx={82 + i * 3.6} cy={200 + Math.sin((i / 10) * Math.PI) * 6} r="1.7" fill="#fbf8f3" stroke="#d9cdb6" stroke-width="0.4" />
+        ))}
+        <circle data-part="sparkle" cx="100" cy="206" r="2.6" fill="#e6cf9b" />
+      </g>
+    )}
+
+    <!-- ===== HEAD ===== -->
+    <g>
+      <!-- back hair / behind -->
+      {!isGroom && (
+        <path data-part="dupatta" d="M58 96c-10 30-12 70-2 104 6-40 4-78 16-96z" fill="#cfa9bd" opacity="0.85" style="transform-box: fill-box; transform-origin: 50% 0%;" />
+      )}
+      <path d={isGroom ? 'M66 96c0-26 16-44 34-44s34 18 34 44c0 8-2 16-6 22H72c-4-6-6-14-6-22z' : 'M64 98c0-28 16-46 36-46s36 18 36 46c0 10-2 18-6 24H70c-4-6-6-14-6-24z'} fill={hair} />
+
+      <!-- face -->
+      <path d="M76 108c0-20 10-34 24-34s24 14 24 34c0 24-12 40-24 40s-24-16-24-40z" fill={skin} />
+      <path d="M124 108c0 24-12 40-24 40V74c14 0 24 14 24 34z" fill={skinShade} opacity="0.35" />
+
+      <!-- ears -->
+      <ellipse cx="76" cy="116" rx="4" ry="6" fill={skin} />
+      <ellipse cx="124" cy="116" rx="4" ry="6" fill={skin} />
+      {!isGroom && <circle data-part="sparkle" cx="124" cy="124" r="2.4" fill="#fbf8f3" stroke="#d9cdb6" stroke-width="0.4" />}
+      {!isGroom && <circle cx="76" cy="124" r="2.4" fill="#fbf8f3" stroke="#d9cdb6" stroke-width="0.4" />}
+
+      <!-- brows -->
+      <g data-part="brow" style="transform-box: fill-box; transform-origin: 50% 50%;">
+        <path d="M84 104c4-3 10-3 13 0" fill="none" stroke="#3a281d" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M103 104c3-3 9-3 13 0" fill="none" stroke="#3a281d" stroke-width="1.6" stroke-linecap="round" />
+      </g>
+
+      <!-- eyes (blink scales these on Y) — almond shape with an upper lid line -->
+      <g data-part="eye-l" style="transform-box: fill-box; transform-origin: 50% 50%;">
+        <path d="M84 112c3-2.4 9-2.4 12 0-3 2.6-9 2.6-12 0z" fill="#fbf6ee" />
+        <circle cx="90" cy="112" r="2.1" fill="#3a2a20" />
+        <circle cx="90" cy="112" r="0.9" fill="#1c130d" />
+        <path d="M84 111.4c3-2.4 9-2.4 12 0" fill="none" stroke="#3a281d" stroke-width="1" stroke-linecap="round" />
+      </g>
+      <g data-part="eye-r" style="transform-box: fill-box; transform-origin: 50% 50%;">
+        <path d="M104 112c3-2.4 9-2.4 12 0-3 2.6-9 2.6-12 0z" fill="#fbf6ee" />
+        <circle cx="110" cy="112" r="2.1" fill="#3a2a20" />
+        <circle cx="110" cy="112" r="0.9" fill="#1c130d" />
+        <path d="M104 111.4c3-2.4 9-2.4 12 0" fill="none" stroke="#3a281d" stroke-width="1" stroke-linecap="round" />
+      </g>
+
+      <!-- nose -->
+      <path d="M100 116v8l-3 3" fill="none" stroke={skinShade} stroke-width="1.4" stroke-linecap="round" />
+
+      <!-- mouth (smile scales subtly) -->
+      <path data-part="mouth" d="M91 132c5 4 13 4 18 0" fill="none" stroke="#a85b54" stroke-width="2" stroke-linecap="round" style="transform-box: fill-box; transform-origin: 50% 50%;" />
+
+      <!-- front hair sweep -->
+      {isGroom ? (
+        <path d="M72 96c4-16 16-26 28-26s24 10 28 26c-8-8-18-12-28-12s-20 4-28 12z" fill={hair} />
+      ) : (
+        <g>
+          <path d="M70 98c2-18 14-30 30-30s28 12 30 30c-6-10-16-16-30-16s-24 6-30 16z" fill={hair} />
+          <!-- maang tikka -->
+          <line x1="100" y1="70" x2="100" y2="84" stroke="url(#foil)" stroke-width="1" />
+          <circle data-part="sparkle" cx="100" cy="86" r="2.6" fill="url(#foil)" />
+          <!-- side wave -->
+          <path d="M70 110c-6 18-6 40 0 58 2-22 2-40 6-58z" fill={hair} />
+          <path d="M130 110c6 18 6 40 0 58-2-22-2-40-6-58z" fill={hair} />
+        </g>
+      )}
+      <path d={isGroom ? 'M72 96c8-6 18-10 28-10' : 'M70 98c8-6 18-10 30-10'} fill="none" stroke={hairHi} stroke-width="2" opacity="0.5" />
+
+      <!-- groom: trimmed beard -->
+      {isGroom && (
+        <path d="M80 124c2 14 10 24 20 24s18-10 20-24c-4 10-12 16-20 16s-16-6-20-16z" fill="#2a1d16" opacity="0.85" />
+      )}
+    </g>
+  </svg>
+</div>
+
+<style>
+  .figure { width: var(--w); max-width: 100%; aspect-ratio: 200 / 270; }
+  .figure svg { overflow: visible; }
+</style>

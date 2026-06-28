@@ -1,0 +1,214 @@
+---
+/**
+ * Scene 01 — Arrival. Near-darkness, a velvet box in a spotlight, gold dust
+ * drifting. The guest lifts the lid (drag up past 28%, or tap/Enter); the lid
+ * opens, the interior glows, the folded paper rises, and we move on.
+ * (SCREEN_BOOK Scene 01, PIXEL_SCREEN_SPEC Screen 01, MOTION_BOOK Scene 1.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import VelvetBox from '@art/VelvetBox.astro';
+import GoldText from '@components/ui/GoldText.astro';
+import { content } from '@config/content';
+---
+
+<SceneShell id="arrival" labelledby="arrival-title">
+  <div class="arrival">
+    <p class="t-label arrival__occasion" id="arrival-title">{content.occasion}</p>
+
+    <div
+      class="arrival__box"
+      data-box
+      role="button"
+      tabindex="0"
+      aria-label="Lift the lid to open the invitation box"
+    >
+      <span class="arrival__spotlight" aria-hidden="true"></span>
+      <VelvetBox width={248} />
+    </div>
+
+    <p class="arrival__hint t-label" data-hint>
+      <GoldText>Open with Love</GoldText>
+    </p>
+  </div>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { audio } from '@lib/audio';
+  import { haptic } from '@lib/haptics';
+  import { controller } from '@lib/scene-controller';
+
+  registerScene('arrival', (root) => {
+    const box = root.querySelector<HTMLElement>('[data-box]')!;
+    const lid = root.querySelector<SVGElement>('#box-lid')!;
+    const paper = root.querySelector<SVGElement>('#box-paper-peek')!;
+    const interior = root.querySelector<SVGElement>('#box-interior')!;
+    const spotlight = root.querySelector<HTMLElement>('.arrival__spotlight')!;
+    const hint = root.querySelector<HTMLElement>('[data-hint]')!;
+
+    let idleTl: gsap.core.Timeline | null = null;
+    let opening = false;
+    let dragging = false;
+    let startY = 0;
+    let progress = 0; // 0..1 lid lift
+    const THRESHOLD = 0.28;
+    const RANGE = 120; // px of drag for a full lift
+
+    function setProgress(p: number) {
+      progress = Math.max(0, Math.min(1, p));
+      const lift = -progress * 34;
+      const tilt = -progress * 10;
+      gsap.set(lid, { y: lift, rotateX: prefersReducedMotion() ? 0 : tilt });
+      gsap.set(paper, { y: -progress * 10, autoAlpha: 0.6 + progress * 0.4 });
+      gsap.set(spotlight, { opacity: 0.5 + progress * 0.5 });
+    }
+
+    function open() {
+      if (opening) return;
+      opening = true;
+      idleTl?.kill();
+      audio.play('paperfold');
+      haptic('medium');
+
+      const tl = gsap.timeline({
+        onComplete: () => controller.next(),
+      });
+      tl.to(lid, {
+        y: -64,
+        rotateX: prefersReducedMotion() ? 0 : -26,
+        autoAlpha: prefersReducedMotion() ? 1 : 0.96,
+        duration: dur(DUR.paper),
+        ease: EASE.paper,
+      });
+      tl.to(spotlight, { opacity: 1, scale: 1.1, duration: dur(DUR.card) }, '<');
+      tl.to(interior, { autoAlpha: 1, duration: dur(DUR.card) }, '<');
+      tl.fromTo(
+        paper,
+        { y: 0 },
+        { y: -54, duration: dur(DUR.paper), ease: EASE.out },
+        '<0.1',
+      );
+      tl.to(box, { y: prefersReducedMotion() ? 0 : -30, duration: dur(DUR.card), ease: EASE.out }, '<0.2');
+    }
+
+    function snapBack() {
+      gsap.to([lid, paper], {
+        y: 0,
+        rotateX: 0,
+        duration: DUR.tap,
+        ease: EASE.out,
+        onComplete: () => setProgress(0),
+      });
+    }
+
+    // --- pointer drag ---
+    const onDown = (e: PointerEvent) => {
+      if (opening) return;
+      dragging = true;
+      startY = e.clientY;
+      box.setPointerCapture(e.pointerId);
+      gsap.to(hint, { autoAlpha: 0, duration: 0.2 });
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!dragging || opening) return;
+      const dy = startY - e.clientY; // up is positive
+      setProgress(dy / RANGE);
+    };
+    const onUp = () => {
+      if (!dragging || opening) return;
+      dragging = false;
+      if (progress >= THRESHOLD) open();
+      else {
+        snapBack();
+        gsap.to(hint, { autoAlpha: 1, duration: 0.3, delay: 0.2 });
+      }
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        open();
+      }
+    };
+
+    return {
+      enter() {
+        gsap.set(box, { y: 0 });
+        setProgress(0);
+        gsap.fromTo(
+          ['.arrival__occasion', box],
+          { autoAlpha: 0, y: 14 },
+          { autoAlpha: 1, y: 0, duration: dur(DUR.card), stagger: 0.12, ease: EASE.out },
+        );
+        gsap.fromTo(hint, { autoAlpha: 0 }, { autoAlpha: 1, duration: DUR.card, delay: 0.8 });
+      },
+      init() {
+        // interaction is bound once, regardless of reduced motion
+        box.addEventListener('pointerdown', onDown);
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+        box.addEventListener('keydown', onKey);
+      },
+      idle() {
+        if (prefersReducedMotion()) return;
+        idleTl = gsap.timeline({ repeat: -1, yoyo: true });
+        idleTl.to(box, { scale: 1.012, duration: 2, ease: EASE.inOut });
+        idleTl.to(spotlight, { opacity: 0.7, duration: 2, ease: EASE.inOut }, '<');
+      },
+      exit() {
+        idleTl?.kill();
+      },
+      destroy() {
+        idleTl?.kill();
+        box.removeEventListener('pointerdown', onDown);
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        box.removeEventListener('keydown', onKey);
+      },
+    };
+  });
+</script>
+
+<style>
+  .arrival {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-5);
+  }
+  .arrival__occasion {
+    color: var(--clr-gold);
+    opacity: 0.9;
+  }
+  .arrival__box {
+    position: relative;
+    width: 248px;
+    max-width: 78vw;
+    cursor: grab;
+    touch-action: none;
+    border-radius: 16px;
+  }
+  .arrival__box:active {
+    cursor: grabbing;
+  }
+  .arrival__spotlight {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 320px;
+    height: 320px;
+    max-width: 92vw;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(230, 207, 155, 0.34) 0%, rgba(230, 207, 155, 0.08) 38%, transparent 66%);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .arrival__hint {
+    font-size: var(--fs-12);
+    letter-spacing: var(--tracking-label);
+  }
+</style>

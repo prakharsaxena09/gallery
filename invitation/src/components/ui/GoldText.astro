@@ -1,0 +1,36 @@
+---
+/**
+ * GoldText.astro — applies the moving champagne-foil treatment to text. Used
+ * sparingly for names and key accents (gold is an accent, never a wash).
+ */
+interface Props {
+  as?: 'span' | 'h1' | 'h2' | 'p' | 'div';
+  class?: string;
+  shimmer?: boolean;
+}
+const { as: Tag = 'span', class: className = '', shimmer = false } = Astro.props;
+---
+
+<Tag class={`foil-text ${shimmer ? 'foil-text--shimmer' : ''} ${className}`}>
+  <slot />
+</Tag>
+
+<style>
+  .foil-text--shimmer {
+    animation: foil-shimmer 5.5s var(--ease-in-out) infinite;
+  }
+  @keyframes foil-shimmer {
+    0%,
+    100% {
+      background-position: 0% 0;
+    }
+    50% {
+      background-position: 220% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .foil-text--shimmer {
+      animation: none;
+    }
+  }
+</style>

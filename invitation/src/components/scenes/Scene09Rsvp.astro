@@ -1,0 +1,170 @@
+---
+/**
+ * Scene 09 — RSVP. The envelope opens and the card rises. Primary action is a
+ * prefilled WhatsApp RSVP; secondary is Web Share (with clipboard fallback).
+ * (SCREEN_BOOK Scene 09, ENGINEERING_SPEC §13.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import Envelope from '@art/Envelope.astro';
+import GoldText from '@components/ui/GoldText.astro';
+import GoldDivider from '@art/GoldDivider.astro';
+import Icon from '@art/Icon.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+---
+
+<SceneShell id="rsvp" labelledby="rsvp-heading">
+  <div class="rsvp">
+    <div class="rsvp__art" data-env aria-hidden="true">
+      <Envelope width={300} />
+    </div>
+
+    <div class="rsvp__panel" data-panel>
+      <h2 class="t-label rsvp__kicker" id="rsvp-heading">Join Us</h2>
+      <p class="t-heading rsvp__line">
+        We would be honoured to celebrate with
+        <GoldText>you</GoldText>.
+      </p>
+      <GoldDivider width={140} />
+
+      <div class="rsvp__actions">
+        <a class="btn btn--primary rsvp__whatsapp" data-whatsapp href="#" target="_blank" rel="noopener noreferrer">
+          <Icon name="whatsapp" size={20} color="var(--clr-coffee)" /> RSVP on WhatsApp
+        </a>
+        <button class="btn btn--secondary btn--on-dark rsvp__share" type="button" data-share>
+          <Icon name="share" size={20} color="var(--clr-eggshell)" /> Share Invite
+        </button>
+      </div>
+
+      <p class="rsvp__note" data-note hidden></p>
+    </div>
+  </div>
+
+  <Fragment slot="foot">
+    <ContinueCue label="A final wish" />
+  </Fragment>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { whatsappUrl, hasWhatsapp } from '@config/routes';
+  import { resolveGuest } from '@lib/personalize';
+  import { shareInvite } from '@lib/share';
+  import { audio } from '@lib/audio';
+  import { haptic } from '@lib/haptics';
+
+  registerScene('rsvp', (root) => {
+    const flap = root.querySelector<SVGElement>('#env-flap')!;
+    const card = root.querySelector<SVGElement>('#env-card')!;
+    const waLink = root.querySelector<HTMLAnchorElement>('[data-whatsapp]')!;
+    const shareBtn = root.querySelector<HTMLButtonElement>('[data-share]')!;
+    const note = root.querySelector<HTMLElement>('[data-note]')!;
+    let opened = false;
+
+    function configureWhatsapp() {
+      const { guest } = resolveGuest();
+      waLink.href = whatsappUrl(guest);
+    }
+
+    function showNote(msg: string) {
+      note.textContent = msg;
+      note.hidden = false;
+      gsap.fromTo(note, { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(DUR.tap) });
+    }
+
+    function openEnvelope() {
+      if (opened) return;
+      opened = true;
+      audio.play('ribbon');
+      if (prefersReducedMotion()) {
+        gsap.set(flap, { rotateX: -170, autoAlpha: 0 });
+        gsap.set(card, { y: -40 });
+        return;
+      }
+      const tl = gsap.timeline();
+      tl.to(flap, { rotateX: -172, transformOrigin: '50% 0%', duration: dur(DUR.paper), ease: EASE.paper });
+      tl.to(flap, { autoAlpha: 0, duration: 0.2 }, '>-0.2');
+      tl.to(card, { y: -46, duration: dur(DUR.paper), ease: EASE.out }, '<0.1');
+    }
+
+    const onShare = async () => {
+      haptic('medium');
+      const result = await shareInvite();
+      if (result === 'copied') showNote('Invitation link copied to your clipboard.');
+      else if (result === 'unsupported') showNote('Copy this page link to share the invitation.');
+    };
+    const onWa = (e: Event) => {
+      // No real number configured yet — keep the action graceful rather than
+      // opening a broken chat.
+      if (!hasWhatsapp()) {
+        e.preventDefault();
+        showNote('Our RSVP contact will be added shortly — thank you for letting us know you can make it!');
+        return;
+      }
+      haptic('strong');
+    };
+
+    return {
+      init() {
+        configureWhatsapp();
+        shareBtn.addEventListener('click', onShare);
+        waLink.addEventListener('click', onWa);
+      },
+      preload() {
+        configureWhatsapp();
+      },
+      enter() {
+        opened = false;
+        gsap.set(flap, { rotateX: 0, autoAlpha: 1 });
+        gsap.set(card, { y: 0 });
+        gsap.fromTo('.rsvp__art', { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: dur(DUR.card), ease: EASE.out });
+        gsap.delayedCall(prefersReducedMotion() ? 0.1 : 0.5, openEnvelope);
+        gsap.fromTo('.rsvp__panel', { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: dur(DUR.card), delay: prefersReducedMotion() ? 0.2 : 1, ease: EASE.out });
+      },
+      destroy() {
+        shareBtn.removeEventListener('click', onShare);
+        waLink.removeEventListener('click', onWa);
+      },
+    };
+  });
+</script>
+
+<style>
+  .rsvp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-3);
+  }
+  .rsvp__art {
+    width: 300px;
+    max-width: 80vw;
+  }
+  .rsvp__art :global(svg) { overflow: visible; }
+  .rsvp__kicker { color: var(--clr-gold); opacity: 0.9; }
+  .rsvp__line {
+    font-size: var(--fs-24);
+    color: var(--scene-on);
+    margin-block: var(--sp-1) var(--sp-2);
+    max-width: 22ch;
+    margin-inline: auto;
+  }
+  .rsvp__actions {
+    margin-top: var(--sp-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    width: 280px;
+    max-width: 84vw;
+  }
+  .rsvp__actions .btn { width: 100%; }
+  .rsvp__note {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-14);
+    color: var(--clr-eggshell);
+    opacity: 0.9;
+    max-width: 30ch;
+    margin-inline: auto;
+  }
+</style>

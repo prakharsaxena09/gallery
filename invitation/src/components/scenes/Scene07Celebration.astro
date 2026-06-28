@@ -1,0 +1,241 @@
+---
+/**
+ * Scene 07 — The Celebration. The illustrated ITC Fortune rooftop with a slow
+ * camera pan and animated pool reflections. Four pulsing hotspots (stage,
+ * dining, pool, photo); tapping one gently zooms in and reveals its description.
+ * (SCREEN_BOOK Scene 07, PIXEL_SCREEN_SPEC Screen 07, MOTION_BOOK Scene 7.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import VenueRooftop from '@art/VenueRooftop.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+import { content } from '@config/content';
+
+const { hotspots, name, tagline } = content.venue;
+---
+
+<SceneShell id="celebration" labelledby="celebration-heading">
+  <VenueRooftop slot="stage" />
+
+  <div class="celebration" data-celebration>
+    <header class="celebration__intro" data-intro>
+      <h2 class="t-label celebration__kicker" id="celebration-heading">The Celebration</h2>
+      <p class="t-heading celebration__venue">{name}</p>
+      <p class="t-body celebration__tag">{tagline}</p>
+    </header>
+
+    {hotspots.map((h) => (
+      <button
+        class="celebration__hotspot"
+        type="button"
+        data-hotspot={h.id}
+        data-x={h.x}
+        data-y={h.y}
+        style={`left:${h.x}%; top:${h.y}%`}
+        aria-label={`${h.title}: ${h.description}`}
+      >
+        <span class="celebration__pulse" aria-hidden="true"></span>
+        <span class="celebration__dot" aria-hidden="true"></span>
+        <span class="celebration__tip t-label">{h.title}</span>
+      </button>
+    ))}
+
+    <div class="celebration__card" data-card hidden role="status" aria-live="polite">
+      <h3 class="t-heading celebration__card-title" data-card-title></h3>
+      <p class="t-body celebration__card-desc" data-card-desc></p>
+      <button class="celebration__card-close" type="button" data-card-close aria-label="Close">×</button>
+    </div>
+  </div>
+
+  <Fragment slot="foot">
+    <ContinueCue label="Event details" />
+  </Fragment>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur, rd, cameraPan } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { haptic } from '@lib/haptics';
+  import { content } from '@config/content';
+
+  registerScene('celebration', (root) => {
+    const stage = root.querySelector<HTMLElement>('[data-part="venue-stage"]')!;
+    const reflection = root.querySelector<SVGElement>('[data-part="pool-reflection"]');
+    const hotspots = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-hotspot]'));
+    const card = root.querySelector<HTMLElement>('[data-card]')!;
+    const cardTitle = root.querySelector<HTMLElement>('[data-card-title]')!;
+    const cardDesc = root.querySelector<HTMLElement>('[data-card-desc]')!;
+    const cardClose = root.querySelector<HTMLButtonElement>('[data-card-close]')!;
+    let panLoop: gsap.core.Tween | null = null;
+    let reflectLoop: gsap.core.Tween | null = null;
+    let pulse: gsap.core.Timeline | null = null;
+
+    function focusHotspot(id: string, x: number, y: number) {
+      const h = content.venue.hotspots.find((s) => s.id === id);
+      if (!h) return;
+      cardTitle.textContent = h.title;
+      cardDesc.textContent = h.description;
+      card.hidden = false;
+      gsap.fromTo(card, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: dur(DUR.card), ease: EASE.out });
+      haptic('light');
+      // camera nudge toward the point (≤8% zoom)
+      panLoop?.kill();
+      const dx = (50 - x) * 0.7;
+      const dy = (50 - y) * 0.5;
+      cameraPan(stage, { x: dx, y: dy, scale: 1.08 });
+      hotspots.forEach((b) => b.classList.toggle('is-active', b.dataset.hotspot === id));
+    }
+
+    function resetCamera() {
+      card.hidden = true;
+      cameraPan(stage, { x: 0, y: 0, scale: 1 });
+      hotspots.forEach((b) => b.classList.remove('is-active'));
+      startAmbient();
+    }
+
+    const onHotspot = (e: Event) => {
+      const b = e.currentTarget as HTMLElement;
+      panLoop?.kill();
+      focusHotspot(b.dataset.hotspot!, Number(b.dataset.x), Number(b.dataset.y));
+    };
+
+    function startAmbient() {
+      stopAmbient();
+      if (prefersReducedMotion()) return;
+      // slow continuous dolly
+      panLoop = gsap.to(stage, { x: 8, y: -6, scale: 1.05, duration: 9, yoyo: true, repeat: -1, ease: EASE.cinematic });
+      if (reflection) reflectLoop = gsap.to(reflection, { x: 6, opacity: 0.4, duration: 3.2, yoyo: true, repeat: -1, ease: EASE.inOut });
+      pulse = gsap.timeline({ repeat: -1, repeatDelay: 4 });
+      pulse.fromTo('.celebration__pulse', { scale: 0.6, opacity: 0.7 }, { scale: 2.4, opacity: 0, duration: 1.8, stagger: 0.2, ease: 'power1.out' });
+    }
+    function stopAmbient() {
+      panLoop?.kill();
+      reflectLoop?.kill();
+      pulse?.kill();
+      panLoop = reflectLoop = null;
+      pulse = null;
+    }
+
+    return {
+      init() {
+        hotspots.forEach((h) => h.addEventListener('click', onHotspot));
+        cardClose.addEventListener('click', resetCamera);
+      },
+      enter() {
+        gsap.set(stage, { x: 0, y: 0, scale: 1 });
+        gsap.fromTo('[data-intro]', { autoAlpha: 0, y: -10 }, { autoAlpha: 1, y: 0, duration: dur(DUR.card), ease: EASE.out });
+        gsap.fromTo('.celebration__hotspot', { autoAlpha: 0, scale: 0.5 }, { autoAlpha: 1, scale: 1, duration: dur(DUR.card), stagger: rd(0.12), delay: rd(0.3), ease: EASE.out });
+      },
+      idle() {
+        startAmbient();
+      },
+      exit() {
+        stopAmbient();
+        card.hidden = true;
+      },
+      destroy() {
+        stopAmbient();
+        hotspots.forEach((h) => h.removeEventListener('click', onHotspot));
+        cardClose.removeEventListener('click', resetCamera);
+      },
+    };
+  });
+</script>
+
+<style>
+  .celebration {
+    /* Full-bleed: position against the scene (a full-screen containing block)
+       rather than the centred content column. */
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-content);
+  }
+  .celebration__intro {
+    position: absolute;
+    top: var(--safe-top);
+    left: 0;
+    right: 0;
+    text-align: center;
+    text-shadow: 0 2px 12px rgba(14, 22, 38, 0.6);
+    padding-inline: var(--pad-x);
+  }
+  .celebration__kicker { color: var(--clr-gold); opacity: 0.9; }
+  .celebration__venue {
+    font-size: var(--fs-32);
+    color: var(--clr-ivory);
+    margin-top: var(--sp-1);
+  }
+  .celebration__tag {
+    font-size: var(--fs-14);
+    color: var(--clr-eggshell);
+    opacity: 0.85;
+    max-width: 28ch;
+    margin: var(--sp-1) auto 0;
+  }
+
+  .celebration__hotspot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .celebration__dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--foil);
+    box-shadow: 0 0 0 3px rgba(246, 241, 231, 0.25), var(--shadow-gold);
+  }
+  .celebration__pulse {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--clr-gold-bright);
+    opacity: 0.5;
+  }
+  .celebration__tip {
+    position: absolute;
+    bottom: -18px;
+    font-size: 10px;
+    color: var(--clr-ivory);
+    white-space: nowrap;
+    text-shadow: 0 1px 6px rgba(14, 22, 38, 0.9);
+    opacity: 0;
+    transition: opacity var(--mt-tap) var(--ease-out);
+  }
+  .celebration__hotspot:hover .celebration__tip,
+  .celebration__hotspot.is-active .celebration__tip { opacity: 1; }
+  .celebration__hotspot.is-active .celebration__dot { transform: scale(1.2); }
+
+  .celebration__card {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--safe-bottom) + 56px);
+    transform: translateX(-50%);
+    width: 300px;
+    max-width: 84vw;
+    padding: var(--sp-3) var(--sp-4);
+    background: rgba(246, 241, 231, 0.97);
+    border: 1px solid var(--clr-gold);
+    border-radius: var(--radius-paper);
+    box-shadow: var(--shadow-3);
+    color: var(--ink);
+    text-align: left;
+  }
+  .celebration__card-title { font-size: var(--fs-20); color: var(--clr-emerald); }
+  .celebration__card-desc { font-size: var(--fs-14); color: var(--ink-soft); margin-top: 4px; line-height: 1.5; }
+  .celebration__card-close {
+    position: absolute;
+    top: 4px;
+    right: 10px;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--clr-coffee-soft);
+    min-width: 44px;
+    min-height: 44px;
+  }
+</style>

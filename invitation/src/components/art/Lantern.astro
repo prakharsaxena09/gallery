@@ -1,0 +1,52 @@
+---
+/**
+ * Lantern.astro — H006 sky lantern for the farewell. #lantern-flame flickers,
+ * #lantern-glow is the warm halo; the whole group is lifted by Scene 10 on
+ * release. Paper dome in ivory with gold ribs and a soft burning core.
+ */
+interface Props {
+  width?: number;
+  class?: string;
+}
+const { width = 150, class: className = '' } = Astro.props;
+---
+
+<div class={`lantern ${className}`} style={`--w:${width}px`}>
+  <svg viewBox="0 0 120 170" width="100%" height="100%" role="img" aria-label="A glowing paper sky lantern">
+    <!-- outer glow halo -->
+    <circle id="lantern-glow" cx="60" cy="78" r="62" fill="url(#flame)" opacity="0.55" />
+
+    <!-- dome -->
+    <path
+      d="M60 14c20 0 34 14 34 32 0 16-6 30-10 44H36c-4-14-10-28-10-44 0-18 14-32 34-32z"
+      fill="url(#paper)"
+      opacity="0.96"
+      filter="url(#soft-shadow-sm)"
+    />
+    <!-- inner warm light through the paper -->
+    <ellipse cx="60" cy="62" rx="24" ry="30" fill="#f0c068" opacity="0.35" />
+
+    <!-- gold ribs -->
+    <path d="M60 14v76M44 18c-8 18-8 50-4 72M76 18c8 18 8 50 4 72M30 50h60M28 72h64"
+      fill="none" stroke="url(#foil)" stroke-width="1" opacity="0.7" />
+
+    <!-- mouth ring -->
+    <ellipse cx="60" cy="92" rx="26" ry="6" fill="none" stroke="url(#foil)" stroke-width="1.4" />
+    <!-- cross wires -->
+    <path d="M36 91l24 8 24-8" fill="none" stroke="url(#foil)" stroke-width="0.8" opacity="0.7" />
+
+    <!-- flame -->
+    <g id="lantern-flame" style="transform-box: fill-box; transform-origin: 50% 100%;">
+      <path d="M60 88c4-3 6-7 6-11 0-3-2-6-6-9-4 3-6 6-6 9 0 4 2 8 6 11z" fill="url(#flame)" />
+      <path d="M60 86c2-2 3-4 3-7 0-2-1-4-3-5-2 1-3 3-3 5 0 3 1 5 3 7z" fill="#fff4cf" />
+    </g>
+  </svg>
+</div>
+
+<style>
+  .lantern {
+    width: var(--w);
+    aspect-ratio: 120 / 170;
+  }
+  .lantern svg { overflow: visible; }
+</style>

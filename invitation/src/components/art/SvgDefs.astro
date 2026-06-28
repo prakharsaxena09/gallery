@@ -1,0 +1,98 @@
+---
+/**
+ * SvgDefs.astro — shared SVG <defs> (gradients + filters) mounted once near the
+ * root so every inline illustration can reference them by id. Keeping these
+ * centralised guarantees one lighting/foil language across all art
+ * (CREATIVE_DIRECTOR_NOTES "feel painted by the same artist").
+ */
+---
+
+<svg aria-hidden="true" focusable="false" width="0" height="0" class="svg-defs">
+  <defs>
+    <!-- Champagne gold foil with a soft moving reflection (animated in CSS). -->
+    <linearGradient id="foil" x1="0%" y1="0%" x2="100%" y2="20%">
+      <stop offset="0%" stop-color="#9c7536" />
+      <stop offset="22%" stop-color="#c8a86b" />
+      <stop offset="40%" stop-color="#f3e3bd" />
+      <stop offset="58%" stop-color="#b88a42" />
+      <stop offset="78%" stop-color="#e6cf9b" />
+      <stop offset="100%" stop-color="#a6803f" />
+    </linearGradient>
+
+    <linearGradient id="foil-v" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#b88a42" />
+      <stop offset="35%" stop-color="#f3e3bd" />
+      <stop offset="70%" stop-color="#c8a86b" />
+      <stop offset="100%" stop-color="#9c7536" />
+    </linearGradient>
+
+    <!-- Emerald velvet body with a light-absorbing nap. -->
+    <radialGradient id="velvet" cx="50%" cy="38%" r="75%">
+      <stop offset="0%" stop-color="#2f5a4e" />
+      <stop offset="55%" stop-color="#23463d" />
+      <stop offset="100%" stop-color="#16322b" />
+    </radialGradient>
+
+    <linearGradient id="velvet-lid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#356055" />
+      <stop offset="60%" stop-color="#234740" />
+      <stop offset="100%" stop-color="#19342d" />
+    </linearGradient>
+
+    <!-- Warm ivory paper. -->
+    <linearGradient id="paper" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fbf8f3" />
+      <stop offset="55%" stop-color="#f6f1e7" />
+      <stop offset="100%" stop-color="#efe6d4" />
+    </linearGradient>
+
+    <!-- Deep burgundy wax. -->
+    <radialGradient id="wax" cx="40%" cy="34%" r="72%">
+      <stop offset="0%" stop-color="#a23a3a" />
+      <stop offset="55%" stop-color="#7e2530" />
+      <stop offset="100%" stop-color="#5b1822" />
+    </radialGradient>
+
+    <!-- Lantern flame glow. -->
+    <radialGradient id="flame" cx="50%" cy="60%" r="60%">
+      <stop offset="0%" stop-color="#fff4cf" />
+      <stop offset="45%" stop-color="#f0c068" />
+      <stop offset="100%" stop-color="rgba(240,176,80,0)" />
+    </radialGradient>
+
+    <!-- Soft warm drop shadow (never harsh grey — DESIGN_SYSTEM §7). -->
+    <filter id="soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#4c372e" flood-opacity="0.28" />
+    </filter>
+
+    <filter id="soft-shadow-sm" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#4c372e" flood-opacity="0.25" />
+    </filter>
+
+    <!-- Handmade paper fibre grain. -->
+    <filter id="paper-grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="n" />
+      <feColorMatrix in="n" type="saturate" values="0" />
+      <feComponentTransfer><feFuncA type="linear" slope="0.05" /></feComponentTransfer>
+      <feComposite operator="over" in2="SourceGraphic" />
+    </filter>
+
+    <!-- Velvet nap micro-texture. -->
+    <filter id="velvet-nap">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.5" numOctaves="2" result="n" />
+      <feColorMatrix in="n" type="matrix"
+        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0" />
+      <feComposite operator="over" in2="SourceGraphic" />
+    </filter>
+  </defs>
+</svg>
+
+<style>
+  .svg-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+</style>

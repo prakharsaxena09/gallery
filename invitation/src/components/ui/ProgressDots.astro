@@ -1,0 +1,84 @@
+---
+/**
+ * ProgressDots.astro — a quiet chapter indicator (and keyboard-reachable jump
+ * control) pinned to the safe top. Reflects controller state via `scene:change`.
+ */
+import { SCENES } from '@config/theme';
+---
+
+<nav class="dots" aria-label="Chapters">
+  <ol class="dots__list">
+    {SCENES.map((s, i) => (
+      <li>
+        <button
+          type="button"
+          class="dots__dot"
+          data-goto={i}
+          aria-label={`Chapter ${i + 1}: ${s.chapter}`}
+          aria-current={i === 0 ? 'true' : 'false'}
+        >
+          <span class="dots__pip" aria-hidden="true"></span>
+        </button>
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<script>
+  import { controller } from '@lib/scene-controller';
+
+  const dots = Array.from(document.querySelectorAll<HTMLButtonElement>('.dots__dot'));
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const i = Number(dot.dataset.goto);
+      if (!Number.isNaN(i)) void controller.goTo(i);
+    });
+  });
+
+  window.addEventListener('scene:change', (e) => {
+    const idx = (e as CustomEvent).detail.index as number;
+    dots.forEach((d, i) => d.setAttribute('aria-current', i === idx ? 'true' : 'false'));
+  });
+</script>
+
+<style>
+  .dots {
+    position: fixed;
+    top: max(var(--sp-2), env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--z-chrome);
+  }
+  .dots__list {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    list-style: none;
+    padding: 6px 10px;
+  }
+  .dots__dot {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+  }
+  .dots__pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    color: var(--scene-on, #efe8dc);
+    opacity: 0.35;
+    transition: opacity var(--mt-tap) var(--ease-out), transform var(--mt-tap) var(--ease-out);
+  }
+  .dots__dot[aria-current='true'] .dots__pip {
+    opacity: 1;
+    transform: scale(1.6);
+    background: var(--clr-gold);
+    color: var(--clr-gold);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dots__pip { transition: none; }
+  }
+</style>

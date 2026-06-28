@@ -1,0 +1,52 @@
+---
+/**
+ * ParticleField.astro — mounts the canvas particle engine for a scene and ties
+ * its lifecycle to scene activation (runs only while its scene is on stage, and
+ * never under reduced motion). Sits on the particle layer (top of the stack).
+ */
+import type { ParticleKind } from '@lib/particles-types';
+import type { SceneId } from '@config/theme';
+
+interface Props {
+  scene: SceneId;
+  kind: ParticleKind;
+}
+const { scene, kind } = Astro.props;
+---
+
+<canvas class="particle-field" data-scene-particles={scene} data-kind={kind} aria-hidden="true"></canvas>
+
+<script>
+  import { createParticleField } from '@lib/particles';
+  import type { ParticleKind } from '@lib/particles-types';
+  import { controller } from '@lib/scene-controller';
+
+  document.querySelectorAll<HTMLCanvasElement>('canvas[data-scene-particles]').forEach((canvas) => {
+    const scene = canvas.dataset.sceneParticles!;
+    const kind = canvas.dataset.kind as ParticleKind;
+    const field = createParticleField(canvas, kind);
+
+    const sync = (activeId: string) => {
+      if (activeId === scene) field.start();
+      else field.stop();
+    };
+
+    window.addEventListener('scene:change', (e) => {
+      sync((e as CustomEvent).detail.id as string);
+    });
+
+    // Start immediately if this scene is the one currently on stage.
+    if (controller.current === scene) field.start();
+  });
+</script>
+
+<style>
+  .particle-field {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-particles);
+    pointer-events: none;
+  }
+</style>

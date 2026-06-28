@@ -1,0 +1,185 @@
+---
+/**
+ * Scene 05 — Meet the Couple. Editorial portraits occupying the upper ~60%,
+ * captions below. Ambient idle only: blink (4–8s), breathing, dupatta sway,
+ * jewellery sparkle (12–20s). Tap a portrait for a gentle smile.
+ * (SCREEN_BOOK Scene 05, PIXEL_SCREEN_SPEC Screen 05, MOTION_BOOK Scene 5.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import CoupleFigure from '@art/CoupleFigure.astro';
+import GoldDivider from '@art/GoldDivider.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+import { content } from '@config/content';
+---
+
+<SceneShell id="couple" labelledby="couple-heading">
+  <h2 class="t-label couple__heading" id="couple-heading">The Two of Us</h2>
+
+  <div class="couple">
+    {(['groom', 'bride'] as const).map((who) => {
+      const person = who === 'groom' ? content.couple.groom : content.couple.bride;
+      return (
+        <figure class="couple__person">
+          <button class="couple__portrait" data-figure type="button" aria-label={`${person.name} — tap to smile`}>
+            <CoupleFigure who={who} width={168} />
+          </button>
+          <figcaption class="couple__caption">
+            <h3 class="t-display couple__name">{person.name}</h3>
+            <p class="t-body couple__line">{person.caption}</p>
+          </figcaption>
+        </figure>
+      );
+    })}
+  </div>
+
+  <GoldDivider width={160} class="couple__rule" />
+
+  <Fragment slot="foot">
+    <ContinueCue label="Our families" />
+  </Fragment>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur, rd } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { haptic } from '@lib/haptics';
+
+  registerScene('couple', (root) => {
+    const figures = Array.from(root.querySelectorAll<HTMLElement>('[data-figure]'));
+    const loops: gsap.core.Tween[] = [];
+    const timers: number[] = [];
+
+    function part(fig: Element, name: string) {
+      return fig.querySelector<SVGElement>(`[data-part="${name}"]`);
+    }
+
+    function blink(fig: Element) {
+      const eyes = [part(fig, 'eye-l'), part(fig, 'eye-r')].filter(Boolean) as SVGElement[];
+      if (!eyes.length) return;
+      gsap.to(eyes, { scaleY: 0.1, duration: 0.08, yoyo: true, repeat: 1, transformOrigin: '50% 50%', ease: 'power1.inOut' });
+    }
+
+    function sparkle(fig: Element) {
+      const s = fig.querySelectorAll<SVGElement>('[data-part="sparkle"]');
+      if (!s.length) return;
+      gsap.fromTo(s, { opacity: 0.6, scale: 1 }, { opacity: 1, scale: 1.5, duration: 0.5, yoyo: true, repeat: 1, transformOrigin: '50% 50%', ease: EASE.inOut });
+    }
+
+    function smile(fig: Element) {
+      const mouth = part(fig, 'mouth');
+      const brow = part(fig, 'brow');
+      if (mouth) gsap.to(mouth, { scaleX: 1.18, scaleY: 1.25, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: '50% 50%', ease: EASE.out });
+      if (brow) gsap.to(brow, { y: -1.5, duration: 0.3, yoyo: true, repeat: 1, ease: EASE.out });
+      sparkle(fig);
+      haptic('light');
+    }
+
+    function scheduleBlink(fig: Element) {
+      const t = window.setTimeout(() => {
+        blink(fig);
+        scheduleBlink(fig);
+      }, 4000 + Math.random() * 4000);
+      timers.push(t);
+    }
+    function scheduleSparkle(fig: Element) {
+      const t = window.setTimeout(() => {
+        sparkle(fig);
+        scheduleSparkle(fig);
+      }, 12000 + Math.random() * 8000);
+      timers.push(t);
+    }
+
+    const onTap = (e: Event) => smile((e.currentTarget as HTMLElement).querySelector('.figure')!);
+
+    function startIdle() {
+      stopIdle();
+      if (prefersReducedMotion()) return;
+      figures.forEach((btn) => {
+        const fig = btn.querySelector('.figure')!;
+        const chest = part(fig, 'chest');
+        const dupatta = part(fig, 'dupatta');
+        if (chest) loops.push(gsap.to(chest, { scaleY: 1.018, scaleX: 1.006, duration: 2.6, yoyo: true, repeat: -1, transformOrigin: '50% 100%', ease: EASE.inOut }));
+        if (dupatta) loops.push(gsap.to(dupatta, { rotation: 2.2, duration: 3.4, yoyo: true, repeat: -1, transformOrigin: '50% 0%', ease: EASE.inOut }));
+        scheduleBlink(fig);
+        scheduleSparkle(fig);
+      });
+    }
+    function stopIdle() {
+      loops.forEach((l) => l.kill());
+      loops.length = 0;
+      timers.forEach((t) => clearTimeout(t));
+      timers.length = 0;
+    }
+
+    return {
+      init() {
+        figures.forEach((btn) => btn.addEventListener('click', onTap));
+      },
+      enter() {
+        gsap.fromTo('.couple__person', { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: dur(DUR.paper), stagger: rd(0.2), ease: EASE.paper });
+        gsap.fromTo('.couple__heading', { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(DUR.card) });
+      },
+      idle() {
+        startIdle();
+      },
+      exit() {
+        stopIdle();
+      },
+      destroy() {
+        stopIdle();
+        figures.forEach((btn) => btn.removeEventListener('click', onTap));
+      },
+    };
+  });
+</script>
+
+<style>
+  .couple__heading {
+    color: var(--scene-on);
+    opacity: 0.85;
+    margin-bottom: var(--sp-3);
+  }
+  .couple {
+    display: flex;
+    justify-content: center;
+    gap: var(--sp-2);
+  }
+  .couple__person {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 172px;
+  }
+  .couple__portrait {
+    width: 168px;
+    max-width: 42vw;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 12px;
+  }
+  .couple__caption {
+    margin-top: var(--sp-1);
+  }
+  .couple__name {
+    font-size: var(--fs-32);
+    line-height: 1;
+    margin-bottom: var(--sp-1);
+    /* Solid deep antique-gold reads cleanly on the light dusk wash where the
+       foil clip would wash out. Readability wins (CREATIVE_DIRECTOR_NOTES). */
+    color: #8a5a2b;
+    text-shadow: 0 1px 1px rgba(251, 248, 243, 0.4);
+  }
+  .couple__line {
+    font-size: var(--fs-14);
+    color: var(--scene-on);
+    opacity: 0.85;
+    line-height: 1.5;
+    max-width: 22ch;
+    margin-inline: auto;
+  }
+  .couple__rule {
+    margin-top: var(--sp-4);
+    opacity: 0.9;
+  }
+</style>

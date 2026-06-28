@@ -1,0 +1,209 @@
+---
+/**
+ * Scene 06 — Our Families. Two balanced panels with floral borders. Tapping a
+ * family frame unfolds their blessing on paper. (SCREEN_BOOK Scene 06,
+ * PIXEL_SCREEN_SPEC Screen 06, MOTION_BOOK Scene 6.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import FamilyFrame from '@art/FamilyFrame.astro';
+import PaperCard from '@components/ui/PaperCard.astro';
+import GoldDivider from '@art/GoldDivider.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+import Icon from '@art/Icon.astro';
+import { content } from '@config/content';
+
+const sides = [
+  { key: 'groom', ...content.families.groomSide },
+  { key: 'bride', ...content.families.brideSide },
+] as const;
+---
+
+<SceneShell id="families" labelledby="families-heading">
+  <h2 class="t-label families__heading" id="families-heading">With the blessings of our families</h2>
+
+  <div class="families">
+    {sides.map((s) => (
+      <figure class="families__panel">
+        <button class="families__frame" type="button" data-blessing={s.key} aria-label={`Read the blessing from ${s.parents.replace(/\n/g, ' ')}`}>
+          <FamilyFrame names={s.parents} width={150} />
+        </button>
+        <figcaption class="families__label t-body">{s.label}</figcaption>
+        <span class="families__tap t-label">Tap for blessing</span>
+      </figure>
+    ))}
+  </div>
+
+  <GoldDivider width={160} class="families__rule" />
+
+  <Fragment slot="foot">
+    <ContinueCue label="The celebration" />
+  </Fragment>
+
+  <!-- blessing overlay -->
+  <div class="blessing" data-overlay hidden>
+    <div class="blessing__scrim" data-scrim></div>
+    <div class="blessing__sheet" role="dialog" aria-modal="true" aria-labelledby="blessing-title" data-sheet>
+      <PaperCard corners={true} padding="roomy">
+        <p class="t-label blessing__kicker" id="blessing-title">A Blessing</p>
+        <GoldDivider width={120} />
+        <p class="t-body blessing__text" data-blessing-text></p>
+        <p class="t-heading blessing__from" data-blessing-from></p>
+        <button class="btn btn--secondary blessing__close" type="button" data-close>
+          <Icon name="chevron" size={18} color="var(--clr-emerald)" /> Close
+        </button>
+      </PaperCard>
+    </div>
+  </div>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur, rd, paperFold } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { audio } from '@lib/audio';
+  import { haptic } from '@lib/haptics';
+  import { content } from '@config/content';
+
+  registerScene('families', (root) => {
+    const overlay = root.querySelector<HTMLElement>('[data-overlay]')!;
+    const scrim = root.querySelector<HTMLElement>('[data-scrim]')!;
+    const sheet = root.querySelector<HTMLElement>('[data-sheet]')!;
+    const textEl = root.querySelector<HTMLElement>('[data-blessing-text]')!;
+    const fromEl = root.querySelector<HTMLElement>('[data-blessing-from]')!;
+    const closeBtn = root.querySelector<HTMLButtonElement>('[data-close]')!;
+    const triggers = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-blessing]'));
+    let lastFocus: HTMLElement | null = null;
+
+    function openBlessing(key: string) {
+      const side = key === 'groom' ? content.families.groomSide : content.families.brideSide;
+      textEl.textContent = side.blessing;
+      fromEl.textContent = side.parents.replace(/\n/g, ' ');
+      lastFocus = document.activeElement as HTMLElement;
+      overlay.hidden = false;
+      audio.play('paperfold');
+      haptic('light');
+      gsap.fromTo(scrim, { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(DUR.tap) });
+      paperFold(sheet);
+      closeBtn.focus();
+      document.addEventListener('keydown', onKey);
+    }
+
+    function closeBlessing() {
+      gsap.to(scrim, { autoAlpha: 0, duration: dur(DUR.tap) });
+      gsap.to(sheet, {
+        autoAlpha: 0,
+        y: prefersReducedMotion() ? 0 : 12,
+        duration: dur(DUR.tap),
+        onComplete: () => {
+          overlay.hidden = true;
+          gsap.set(sheet, { y: 0 });
+          lastFocus?.focus();
+        },
+      });
+      document.removeEventListener('keydown', onKey);
+    }
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); closeBlessing(); }
+    };
+    const onTrigger = (e: Event) => openBlessing((e.currentTarget as HTMLElement).dataset.blessing!);
+
+    return {
+      init() {
+        triggers.forEach((t) => t.addEventListener('click', onTrigger));
+        closeBtn.addEventListener('click', closeBlessing);
+        scrim.addEventListener('click', closeBlessing);
+      },
+      enter() {
+        gsap.fromTo('.families__panel', { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: dur(DUR.paper), stagger: rd(0.18), ease: EASE.paper });
+        gsap.fromTo('.families__heading', { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(DUR.card) });
+      },
+      exit() {
+        if (!overlay.hidden) closeBlessing();
+      },
+      destroy() {
+        triggers.forEach((t) => t.removeEventListener('click', onTrigger));
+        closeBtn.removeEventListener('click', closeBlessing);
+        scrim.removeEventListener('click', closeBlessing);
+        document.removeEventListener('keydown', onKey);
+      },
+    };
+  });
+</script>
+
+<style>
+  .families__heading {
+    color: var(--scene-on);
+    opacity: 0.85;
+    max-width: 28ch;
+    margin: 0 auto var(--sp-4);
+  }
+  .families {
+    display: flex;
+    justify-content: center;
+    gap: var(--sp-3);
+  }
+  .families__panel {
+    flex: 1 1 0;
+    max-width: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-1);
+  }
+  .families__frame {
+    width: 150px;
+    max-width: 40vw;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 12px;
+    transition: transform var(--mt-tap) var(--ease-out);
+  }
+  .families__frame:hover { transform: translateY(-3px); }
+  .families__label {
+    font-size: var(--fs-14);
+    color: var(--scene-on);
+    opacity: 0.85;
+    line-height: 1.4;
+  }
+  .families__tap {
+    font-size: var(--fs-12);
+    color: var(--clr-gold);
+    opacity: 0.9;
+  }
+  .families__rule {
+    margin-top: var(--sp-4);
+  }
+
+  .blessing {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    display: grid;
+    place-items: center;
+  }
+  .blessing__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 22, 38, 0.72);
+    backdrop-filter: blur(3px);
+  }
+  .blessing__sheet {
+    position: relative;
+    width: 330px;
+    max-width: 86vw;
+  }
+  .blessing__kicker { color: var(--clr-old-gold); }
+  .blessing__text {
+    color: var(--ink);
+    margin-block: var(--sp-2);
+    line-height: 1.7;
+  }
+  .blessing__from {
+    color: var(--clr-emerald);
+    font-size: var(--fs-20);
+    margin-bottom: var(--sp-3);
+  }
+  .blessing__close {
+    min-height: 44px;
+  }
+</style>

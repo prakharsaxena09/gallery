@@ -1,0 +1,258 @@
+---
+/**
+ * Scene 04 — Our Story. Six illustrated memories on paper panels, paged
+ * horizontally (swipe · arrow keys · dots). Each panel: one illustration, one
+ * sentence, one divider. (SCREEN_BOOK Scene 04, PIXEL_SCREEN_SPEC Screen 04.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import PaperCard from '@components/ui/PaperCard.astro';
+import StoryArt from '@art/StoryArt.astro';
+import GoldDivider from '@art/GoldDivider.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+import { content } from '@config/content';
+
+const memories = content.story;
+---
+
+<SceneShell id="story" labelledby="story-heading">
+  <h2 class="t-label story__heading" id="story-heading">Our Story</h2>
+
+  <div class="story" data-story>
+    <div class="story__viewport" data-viewport>
+      <ol class="story__track" data-track>
+        {memories.map((m, i) => (
+          <li class="story__panel" data-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+            <PaperCard class="story__card">
+              <StoryArt art={m.art} size={150} class="story__art" />
+              <GoldDivider width={120} class="story__rule" />
+              <h3 class="t-heading story__title">{m.title}</h3>
+              <p class="t-body story__text">{m.sentence}</p>
+              <span class="t-label story__count">{i + 1} / {memories.length}</span>
+            </PaperCard>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <button class="story__arrow story__arrow--prev" data-prev type="button" aria-label="Previous memory">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="story__arrow story__arrow--next" data-next type="button" aria-label="Next memory">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <ol class="story__pips" data-pips aria-hidden="true">
+      {memories.map((_, i) => <li class={i === 0 ? 'is-active' : ''}></li>)}
+    </ol>
+  </div>
+
+  <Fragment slot="foot">
+    <span class="story__continue" data-continue hidden>
+      <ContinueCue label="Meet the couple" />
+    </span>
+  </Fragment>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { haptic } from '@lib/haptics';
+
+  registerScene('story', (root) => {
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const viewport = root.querySelector<HTMLElement>('[data-viewport]')!;
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('[data-panel]'));
+    const pips = Array.from(root.querySelectorAll<HTMLLIElement>('[data-pips] li'));
+    const prevBtn = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const nextBtn = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const cont = root.querySelector<HTMLElement>('[data-continue]')!;
+    const count = panels.length;
+
+    let index = 0;
+    let dragging = false;
+    let startX = 0;
+    let baseX = 0;
+    let width = 0;
+    let seenLast = false;
+
+    const measure = () => {
+      width = viewport.clientWidth;
+    };
+
+    function go(to: number, animate = true) {
+      index = Math.max(0, Math.min(count - 1, to));
+      const x = -index * width;
+      gsap.to(track, { x, duration: animate && !prefersReducedMotion() ? DUR.card : 0, ease: EASE.out });
+      panels.forEach((p, i) => p.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
+      pips.forEach((p, i) => p.classList.toggle('is-active', i === index));
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === count - 1;
+      if (index === count - 1 && !seenLast) {
+        seenLast = true;
+        cont.hidden = false;
+        gsap.fromTo(cont, { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(DUR.card) });
+      }
+    }
+
+    const next = () => { if (index < count - 1) { go(index + 1); haptic('light'); } };
+    const prev = () => { if (index > 0) { go(index - 1); haptic('light'); } };
+
+    const onPrev = () => prev();
+    const onNext = () => next();
+
+    // pointer swipe
+    const onDown = (e: PointerEvent) => {
+      dragging = true;
+      startX = e.clientX;
+      baseX = -index * width;
+      viewport.setPointerCapture(e.pointerId);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      gsap.set(track, { x: baseX + dx });
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > width * 0.18) {
+        go(dx < 0 ? index + 1 : index - 1);
+        if (index > 0 || index < count - 1) haptic('light');
+      } else {
+        go(index);
+      }
+    };
+
+    // internal arrow-key paging (intercept so global nav doesn't fire)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        if (index < count - 1) { e.preventDefault(); next(); }
+      } else if (e.key === 'ArrowLeft') {
+        if (index > 0) { e.preventDefault(); prev(); }
+      }
+    };
+
+    return {
+      init() {
+        prevBtn.addEventListener('click', onPrev);
+        nextBtn.addEventListener('click', onNext);
+        viewport.addEventListener('pointerdown', onDown);
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+        root.addEventListener('keydown', onKey);
+        window.addEventListener('resize', measure);
+      },
+      enter() {
+        measure();
+        go(index, false);
+        gsap.fromTo('.story__heading', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: dur(DUR.card), ease: EASE.out });
+        gsap.fromTo('[data-story]', { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: dur(DUR.paper), ease: EASE.paper });
+      },
+      destroy() {
+        prevBtn.removeEventListener('click', onPrev);
+        nextBtn.removeEventListener('click', onNext);
+        viewport.removeEventListener('pointerdown', onDown);
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        root.removeEventListener('keydown', onKey);
+        window.removeEventListener('resize', measure);
+      },
+    };
+  });
+</script>
+
+<style>
+  .story__heading {
+    color: var(--clr-coffee);
+    margin-bottom: var(--sp-3);
+    opacity: 0.8;
+  }
+  .story {
+    position: relative;
+    width: 100%;
+  }
+  .story__viewport {
+    overflow: hidden;
+    width: 100%;
+    touch-action: pan-y;
+  }
+  .story__track {
+    display: flex;
+    list-style: none;
+    will-change: transform;
+  }
+  .story__panel {
+    flex: 0 0 100%;
+    display: grid;
+    place-items: center;
+    padding-inline: 2px;
+  }
+  .story__card {
+    width: 300px;
+    max-width: 82vw;
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-1);
+  }
+  .story__art { margin-bottom: var(--sp-1); }
+  .story__rule { margin-block: var(--sp-1); }
+  .story__title {
+    font-size: var(--fs-24);
+    color: var(--clr-coffee);
+  }
+  .story__text {
+    color: var(--ink-soft);
+    max-width: 26ch;
+    font-size: var(--fs-16);
+  }
+  .story__count {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-12);
+    color: var(--clr-old-gold);
+  }
+
+  .story__arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: var(--clr-ivory);
+    background: rgba(22, 34, 57, 0.25);
+  }
+  .story__arrow--prev { left: -6px; }
+  .story__arrow--next { right: -6px; }
+  .story__arrow:disabled { opacity: 0.25; pointer-events: none; }
+
+  .story__pips {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    list-style: none;
+    margin-top: var(--sp-3);
+  }
+  .story__pips li {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--scene-on);
+    opacity: 0.3;
+    transition: opacity var(--mt-tap) var(--ease-out), transform var(--mt-tap) var(--ease-out);
+  }
+  .story__pips li.is-active {
+    opacity: 1;
+    transform: scale(1.5);
+    background: var(--clr-gold);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .story__pips li { transition: none; }
+  }
+</style>

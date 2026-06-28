@@ -1,0 +1,123 @@
+---
+/**
+ * SceneShell.astro — the cinematic stage every scene is mounted on. Applies the
+ * scene's time-of-day lighting (theme.ts), a warm vignette, the ambient particle
+ * field, and a safe-area content column. Honours the PIXEL_SCREEN_SPEC layer
+ * order via z-index tokens.
+ *
+ * Slots:
+ *   stage   — full-bleed art that sits behind content (e.g. the venue)
+ *   default — the centred content column (one focal point per scene)
+ *   foot    — pinned affordance at the safe bottom (e.g. a Continue cue)
+ */
+import { SCENES, type SceneId } from '@config/theme';
+import ParticleField from './ParticleField.astro';
+
+interface Props {
+  id: SceneId;
+  /** Vertically centre the content (default) or pin to top. */
+  align?: 'center' | 'top';
+  labelledby?: string;
+}
+const { id, align = 'center', labelledby } = Astro.props;
+const theme = SCENES.find((s) => s.id === id)!;
+---
+
+<section
+  class={`scene scene--${id} scene--${align}`}
+  data-scene={id}
+  role="group"
+  aria-roledescription="chapter"
+  aria-label={theme.chapter}
+  aria-labelledby={labelledby}
+  style={`--scene-bg:${theme.background}; --scene-on:${theme.onColor}; --vignette:${theme.vignette};`}
+>
+  <div class="scene__bg" aria-hidden="true"></div>
+  <div class="scene__vignette" aria-hidden="true"></div>
+
+  <div class="scene__stage">
+    <slot name="stage" />
+  </div>
+
+  {theme.particles && <ParticleField scene={id} kind={theme.particles} />}
+
+  <div class="scene__content">
+    <slot />
+  </div>
+
+  <div class="scene__foot">
+    <slot name="foot" />
+  </div>
+</section>
+
+<style>
+  .scene {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    color: var(--scene-on);
+    opacity: 0;
+    will-change: opacity;
+    isolation: isolate;
+    contain: layout paint;
+  }
+
+  .scene__bg {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-background);
+    background: var(--scene-bg);
+  }
+
+  /* Warm radial vignette — never a flat grey overlay. */
+  .scene__vignette {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-atmosphere);
+    pointer-events: none;
+    background: radial-gradient(
+      120% 100% at 50% 42%,
+      transparent 40%,
+      rgba(14, 22, 38, calc(var(--vignette) * 0.85)) 100%
+    );
+  }
+
+  .scene__stage {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-architecture);
+    overflow: hidden;
+  }
+
+  .scene__content {
+    position: relative;
+    z-index: var(--z-content);
+    align-self: center;
+    justify-self: center;
+    width: 100%;
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding-inline: var(--pad-x);
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    text-align: center;
+  }
+
+  .scene--top .scene__content {
+    align-self: start;
+  }
+
+  .scene__foot {
+    position: relative;
+    z-index: var(--z-interaction);
+    padding-bottom: calc(var(--safe-bottom) + var(--sp-1));
+    display: flex;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  .scene__foot:empty {
+    display: none;
+  }
+</style>

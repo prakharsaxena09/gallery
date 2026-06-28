@@ -1,0 +1,75 @@
+---
+/**
+ * PaperCard.astro — the warm ivory paper surface used for greetings, details,
+ * blessings and the RSVP card. Optional ornamental gold border + corner florals.
+ * Content is provided via the default slot. Pure layout/material — no logic.
+ */
+import Floral from '@art/Floral.astro';
+
+interface Props {
+  bordered?: boolean;
+  corners?: boolean;
+  class?: string;
+  padding?: 'comfortable' | 'roomy';
+}
+const { bordered = true, corners = false, class: className = '', padding = 'comfortable' } = Astro.props;
+---
+
+<article class={`paper paper-card paper-card--${padding} ${className}`}>
+  {bordered && <span class="paper-card__rule" aria-hidden="true"></span>}
+  {corners && (
+    <>
+      <Floral flower="mogra" variant="corner" size={52} class="paper-card__corner paper-card__corner--tl" />
+      <Floral flower="rose" variant="corner" size={52} class="paper-card__corner paper-card__corner--tr" />
+      <Floral flower="rose" variant="corner" size={52} class="paper-card__corner paper-card__corner--bl" />
+      <Floral flower="mogra" variant="corner" size={52} class="paper-card__corner paper-card__corner--br" />
+    </>
+  )}
+  <div class="paper-card__body">
+    <slot />
+  </div>
+</article>
+
+<style>
+  .paper-card {
+    position: relative;
+    color: var(--ink);
+    text-align: center;
+    isolation: isolate;
+  }
+  .paper-card--comfortable {
+    padding: var(--sp-5) var(--sp-4);
+  }
+  .paper-card--roomy {
+    padding: var(--sp-6) var(--sp-5);
+  }
+
+  /* inset gold rule */
+  .paper-card__rule {
+    position: absolute;
+    inset: var(--sp-2);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: linear-gradient(var(--clr-ivory), var(--clr-ivory)) padding-box,
+      var(--foil) border-box;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  .paper-card__corner {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    z-index: 1;
+    opacity: 0.85;
+  }
+  .paper-card__corner--tl { top: 6px; left: 6px; }
+  .paper-card__corner--tr { top: 6px; right: 6px; transform: scaleX(-1); }
+  .paper-card__corner--bl { bottom: 6px; left: 6px; transform: scaleY(-1); }
+  .paper-card__corner--br { bottom: 6px; right: 6px; transform: scale(-1); }
+
+  .paper-card__body {
+    position: relative;
+    z-index: 2;
+  }
+</style>

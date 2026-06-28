@@ -1,0 +1,55 @@
+---
+/**
+ * ContinueCue.astro — the gentle "turn the page" affordance pinned at the safe
+ * bottom of most scenes. Presentational only: a global delegated handler in the
+ * page advances the controller for any [data-action="next"] element, so this
+ * stays logic-free and reusable.
+ */
+interface Props {
+  label?: string;
+  variant?: 'cue' | 'button';
+  class?: string;
+}
+const { label = 'Continue', variant = 'cue', class: className = '' } = Astro.props;
+---
+
+{variant === 'button' ? (
+  <button type="button" class={`btn btn--secondary btn--on-dark continue-btn ${className}`} data-action="next">
+    {label}
+  </button>
+) : (
+  <button type="button" class={`continue-cue ${className}`} data-action="next" aria-label={label}>
+    <span class="t-label continue-cue__label">{label}</span>
+    <svg class="continue-cue__chev" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 10l5 5 5-5" fill="none" stroke="url(#foil)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+)}
+
+<style>
+  .continue-cue {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-height: 48px;
+    padding: var(--sp-1) var(--sp-2);
+    color: var(--scene-on, var(--clr-eggshell));
+    -webkit-tap-highlight-color: transparent;
+  }
+  .continue-cue__label {
+    font-size: var(--fs-12);
+    opacity: 0.85;
+  }
+  .continue-cue__chev {
+    animation: cue-bob 2.4s var(--ease-in-out) infinite;
+  }
+  @keyframes cue-bob {
+    0%, 100% { transform: translateY(0); opacity: 0.7; }
+    50% { transform: translateY(4px); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .continue-cue__chev { animation: none; }
+  }
+  .continue-btn { margin-top: var(--sp-1); }
+</style>

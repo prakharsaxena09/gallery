@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.astro/
+
+# logs / env
+*.log
+.env
+.env.*
+!.env.example
+
+# os
+.DS_Store
+
+# local QA scratch (kept out of the deliverable)
+_*.mjs

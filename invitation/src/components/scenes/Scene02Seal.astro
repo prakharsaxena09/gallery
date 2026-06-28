@@ -1,0 +1,191 @@
+---
+/**
+ * Scene 02 — The Wax Seal. The handcrafted invitation, centred with generous
+ * whitespace. Tap the wax seal: it cracks, the fragments scatter and fade, and
+ * the paper unfolds. (SCREEN_BOOK Scene 02, MOTION_BOOK Scene 2.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import PaperCard from '@components/ui/PaperCard.astro';
+import WaxSeal from '@art/WaxSeal.astro';
+import GoldDivider from '@art/GoldDivider.astro';
+import GoldText from '@components/ui/GoldText.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+import { content } from '@config/content';
+---
+
+<SceneShell id="seal" labelledby="seal-title">
+  <div class="seal-scene">
+    <PaperCard class="seal-scene__paper" corners={false}>
+      <div class="seal-scene__reveal" data-reveal>
+        <p class="t-label seal-scene__kicker">{content.occasion}</p>
+        <GoldDivider width={160} />
+        <h1 class="t-display seal-scene__names" id="seal-title">
+          <GoldText>{content.couple.groom.name}</GoldText>
+          <span class="seal-scene__amp">&amp;</span>
+          <GoldText>{content.couple.bride.name}</GoldText>
+        </h1>
+        <p class="t-body seal-scene__sub">request the pleasure of your presence</p>
+      </div>
+    </PaperCard>
+
+    <button class="seal-scene__seal" data-seal type="button" aria-label="Break the wax seal to open the invitation">
+      <WaxSeal size={104} />
+    </button>
+  </div>
+
+  <Fragment slot="foot">
+    <span class="seal-scene__continue" data-continue hidden>
+      <ContinueCue label="Read your invitation" />
+    </span>
+  </Fragment>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur, paperFold } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { audio } from '@lib/audio';
+  import { haptic } from '@lib/haptics';
+
+  registerScene('seal', (root) => {
+    const sealBtn = root.querySelector<HTMLButtonElement>('[data-seal]')!;
+    const whole = root.querySelector<SVGElement>('#wax-whole')!;
+    const shards = root.querySelector<SVGElement>('#wax-shards')!;
+    const fragEls = Array.from(root.querySelectorAll<SVGPathElement>('[id^="wax-frag-"]'));
+    const reveal = root.querySelector<HTMLElement>('[data-reveal]')!;
+    const cont = root.querySelector<HTMLElement>('[data-continue]')!;
+    let glint: gsap.core.Timeline | null = null;
+    let broken = false;
+
+    function crack() {
+      if (broken) return;
+      broken = true;
+      glint?.kill();
+      audio.play('waxcrack');
+      haptic('medium');
+
+      const tl = gsap.timeline();
+      if (prefersReducedMotion()) {
+        tl.to([whole, sealBtn], { autoAlpha: 0, duration: 0.2 });
+        tl.add(() => {
+          paperFold(reveal);
+          showContinue();
+        });
+        return;
+      }
+
+      tl.set(shards, { autoAlpha: 1 });
+      tl.set(whole, { autoAlpha: 0 });
+      fragEls.forEach((frag) => {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 50 + Math.random() * 50;
+        tl.to(
+          frag,
+          {
+            x: Math.cos(ang) * dist,
+            y: Math.sin(ang) * dist + 30,
+            rotate: (Math.random() - 0.5) * 120,
+            autoAlpha: 0,
+            duration: DUR.card,
+            ease: EASE.out,
+          },
+          0,
+        );
+      });
+      tl.to(sealBtn, { scale: 0.6, autoAlpha: 0, duration: DUR.tap, ease: EASE.out }, 0);
+      tl.add(() => {
+        paperFold(reveal);
+      }, '>-0.2');
+      tl.add(showContinue, '>-0.4');
+    }
+
+    function showContinue() {
+      cont.hidden = false;
+      gsap.fromTo(cont, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: dur(DUR.card), ease: EASE.out });
+    }
+
+    const onClick = () => crack();
+    sealBtn.addEventListener('click', onClick);
+
+    return {
+      init() {},
+      enter() {
+        if (broken) return;
+        gsap.set(reveal, { autoAlpha: 0 });
+        gsap.set(shards, { autoAlpha: 0 });
+        gsap.set(whole, { autoAlpha: 1 });
+        gsap.fromTo(
+          '.seal-scene__paper',
+          { autoAlpha: 0, y: 18 },
+          { autoAlpha: 1, y: 0, duration: dur(DUR.paper), ease: EASE.paper },
+        );
+        gsap.fromTo(sealBtn, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, duration: dur(DUR.card), delay: 0.3, ease: EASE.out });
+      },
+      idle() {
+        if (prefersReducedMotion() || broken) return;
+        // subtle wax glint
+        glint = gsap.timeline({ repeat: -1, repeatDelay: 2.4 });
+        glint.fromTo(
+          whole,
+          { filter: 'brightness(1)' },
+          { filter: 'brightness(1.12)', duration: 0.9, yoyo: true, repeat: 1, ease: EASE.inOut },
+        );
+      },
+      exit() {
+        glint?.kill();
+      },
+      destroy() {
+        glint?.kill();
+        sealBtn.removeEventListener('click', onClick);
+      },
+    };
+  });
+</script>
+
+<style>
+  .seal-scene {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding-block: var(--sp-4);
+  }
+  .seal-scene__paper {
+    width: 320px;
+    max-width: 84vw;
+    min-height: 300px;
+    display: grid;
+    place-items: center;
+  }
+  .seal-scene__kicker {
+    color: var(--clr-old-gold);
+    font-size: var(--fs-12);
+    margin-bottom: var(--sp-2);
+  }
+  .seal-scene__names {
+    font-size: var(--fs-48);
+    line-height: 1.1;
+    margin-block: var(--sp-2);
+  }
+  .seal-scene__amp {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: var(--fs-20);
+    color: var(--clr-old-gold);
+    margin-block: -2px;
+  }
+  .seal-scene__sub {
+    color: var(--ink-soft);
+    font-size: var(--fs-16);
+    max-width: 24ch;
+    margin-inline: auto;
+  }
+  .seal-scene__seal {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 48px;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+  }
+</style>

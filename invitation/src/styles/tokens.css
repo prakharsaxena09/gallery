@@ -1,0 +1,138 @@
+/*
+ * tokens.css — the single source of visual truth.
+ * Every value here is derived directly from 05_DESIGN_SYSTEM.md,
+ * 02_SCREEN_BOOK.md and 04_MOTION_BOOK.md. Components must not hardcode
+ * colours, spacing, type or easing — they consume these tokens only.
+ */
+
+:root {
+  /* ---- Colour · Base (never pure white/black) ---- */
+  --clr-ivory: #f6f1e7;
+  --clr-eggshell: #efe8dc;
+  --clr-pearl: #fbf8f3;
+
+  /* ---- Colour · Primary ---- */
+  --clr-gold: #c8a86b;
+  --clr-old-gold: #b88a42;
+  --clr-emerald: #23463d;
+  --clr-coffee: #4c372e;
+
+  /* ---- Colour · Accent ---- */
+  --clr-dusty-rose: #caa2a5;
+  --clr-soft-peach: #e5c8b4;
+  --clr-midnight: #162239;
+
+  /* ---- Derived tints/shades (kept within the family) ---- */
+  --clr-emerald-deep: #18322b;
+  --clr-emerald-soft: #2f5a4e;
+  --clr-midnight-deep: #0e1626;
+  --clr-coffee-soft: #6a5247;
+  --clr-gold-bright: #e6cf9b;
+  --clr-rose-soft: #e3c9cb;
+
+  /* ---- Semantic surfaces ---- */
+  --surface-night: var(--clr-midnight);
+  --surface-paper: var(--clr-ivory);
+  --surface-velvet: var(--clr-emerald);
+  --ink: var(--clr-coffee);
+  --ink-soft: var(--clr-coffee-soft);
+  --ink-on-dark: var(--clr-eggshell);
+
+  /* ---- Warm, soft shadow (never harsh grey — DESIGN_SYSTEM §7) ---- */
+  --shadow-1: 0 2px 8px rgba(76, 55, 46, 0.12);
+  --shadow-2: 0 10px 30px rgba(76, 55, 46, 0.18);
+  --shadow-3: 0 24px 60px rgba(22, 34, 57, 0.45);
+  --shadow-gold: 0 6px 22px rgba(200, 168, 107, 0.35);
+
+  /* ---- Gold foil gradient (moving reflection applied in JS/anim) ---- */
+  --foil: linear-gradient(
+    100deg,
+    #9c7536 0%,
+    #c8a86b 18%,
+    #f3e3bd 34%,
+    #b88a42 52%,
+    #e6cf9b 70%,
+    #a6803f 88%,
+    #d8bd84 100%
+  );
+
+  /* ---- Spacing scale (8px base — DESIGN_SYSTEM §4) ---- */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-5: 40px;
+  --sp-6: 48px;
+  --sp-7: 56px;
+  --sp-8: 64px;
+  --sp-10: 80px;
+  --sp-12: 96px;
+
+  /* ---- Layout (390×844 reference) ---- */
+  --pad-x: 24px;
+  --safe-top: 56px;
+  --safe-bottom: 34px;
+  --content-max: 342px;
+  --stage-max: 440px;
+
+  /* ---- Radius ---- */
+  --radius-paper: 8px;
+  --radius-capsule: 999px;
+
+  /* ---- Type families ---- */
+  --font-display: 'Pinyon Script', 'Apple Chancery', cursive;
+  --font-heading: 'Cormorant Garamond', 'Hoefler Text', Georgia, serif;
+  --font-body: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --font-label: 'Cormorant Garamond', Georgia, serif;
+
+  /* ---- Type scale (12/14/16/20/24/32/48/64 — DESIGN_SYSTEM §3) ---- */
+  --fs-12: 0.75rem;
+  --fs-14: 0.875rem;
+  --fs-16: 1rem;
+  --fs-20: 1.25rem;
+  --fs-24: 1.5rem;
+  --fs-32: 2rem;
+  --fs-48: 3rem;
+  --fs-64: 4rem;
+
+  --lh-body: 1.6;
+  --lh-tight: 1.2;
+  --tracking-label: 0.22em;
+  --tracking-wide: 0.08em;
+
+  /* ---- Motion tokens (04_MOTION_BOOK.md) ---- */
+  --mt-tap: 350ms; /* MT001 micro tap */
+  --mt-card: 700ms; /* MT002 card reveal */
+  --mt-paper: 1200ms; /* MT003 paper unfold */
+  --mt-camera: 1800ms; /* MT004 cinematic camera */
+  --mt-lantern: 2500ms; /* MT005 gentle drift */
+
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-paper: cubic-bezier(0.33, 0, 0.18, 1); /* custom paper, no overshoot */
+  --ease-cinematic: cubic-bezier(0.5, 0, 0.2, 1);
+  --ease-drift: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---- Z layers (PIXEL_SCREEN_SPEC layer order) ---- */
+  --z-background: 0;
+  --z-atmosphere: 10;
+  --z-architecture: 20;
+  --z-florals: 30;
+  --z-object: 40;
+  --z-content: 50;
+  --z-interaction: 60;
+  --z-particles: 70;
+  --z-chrome: 90;
+  --z-overlay: 100;
+}
+
+/* Reduced-motion: timings collapse under 300ms (MOTION_BOOK accessibility). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --mt-tap: 200ms;
+    --mt-card: 240ms;
+    --mt-paper: 280ms;
+    --mt-camera: 280ms;
+    --mt-lantern: 300ms;
+  }
+}

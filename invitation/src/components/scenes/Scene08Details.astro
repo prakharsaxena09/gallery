@@ -1,0 +1,136 @@
+---
+/**
+ * Scene 08 — Event Details. Date, time, venue and dress code revealed on paper,
+ * with Add-to-Calendar (ICS) and Directions (Google Maps). (SCREEN_BOOK Scene 08,
+ * ENGINEERING_SPEC §13.)
+ */
+import SceneShell from '@components/ui/SceneShell.astro';
+import PaperCard from '@components/ui/PaperCard.astro';
+import GoldDivider from '@art/GoldDivider.astro';
+import GoldText from '@components/ui/GoldText.astro';
+import Icon from '@art/Icon.astro';
+import ContinueCue from '@components/ui/ContinueCue.astro';
+import { content } from '@config/content';
+
+const { details } = content.event;
+---
+
+<SceneShell id="details" labelledby="details-heading">
+  <PaperCard class="details" corners={false}>
+    <p class="t-label details__kicker" id="details-heading">{content.occasion}</p>
+    <h2 class="t-display details__names">
+      <GoldText>{content.couple.groom.name} &amp; {content.couple.bride.name}</GoldText>
+    </h2>
+    <GoldDivider width={150} />
+
+    <dl class="details__list">
+      {details.map((d) => (
+        <div class="details__row" data-row>
+          <span class="details__icon"><Icon name={d.icon} size={26} /></span>
+          <div class="details__pair">
+            <dt class="t-label details__label">{d.label}</dt>
+            <dd class="details__value t-heading">{d.value}</dd>
+            {d.sub && <dd class="details__sub t-body">{d.sub}</dd>}
+          </div>
+        </div>
+      ))}
+    </dl>
+
+    <div class="details__actions">
+      <button class="btn btn--primary" type="button" data-calendar>
+        <Icon name="calendar" size={20} color="var(--clr-coffee)" /> Add to Calendar
+      </button>
+      <a class="btn btn--secondary" data-directions href="#" target="_blank" rel="noopener noreferrer">
+        <Icon name="directions" size={20} color="var(--clr-emerald)" /> Directions
+      </a>
+    </div>
+  </PaperCard>
+
+  <Fragment slot="foot">
+    <ContinueCue label="Will you join us?" />
+  </Fragment>
+</SceneShell>
+
+<script>
+  import { registerScene } from '@lib/scene-controller';
+  import { gsap, DUR, EASE, dur, rd } from '@lib/motion';
+  import { prefersReducedMotion } from '@lib/reduced-motion';
+  import { downloadICS } from '@lib/ics';
+  import { mapsUrl } from '@config/routes';
+  import { haptic } from '@lib/haptics';
+
+  registerScene('details', (root) => {
+    const calBtn = root.querySelector<HTMLButtonElement>('[data-calendar]')!;
+    const dirLink = root.querySelector<HTMLAnchorElement>('[data-directions]')!;
+    const rows = Array.from(root.querySelectorAll<HTMLElement>('[data-row]'));
+
+    const onCal = () => { downloadICS(); haptic('light'); };
+
+    return {
+      init() {
+        dirLink.href = mapsUrl();
+        calBtn.addEventListener('click', onCal);
+      },
+      preload() {
+        dirLink.href = mapsUrl();
+      },
+      enter() {
+        gsap.fromTo('.details', { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: dur(DUR.paper), ease: EASE.paper });
+        gsap.fromTo(rows, { autoAlpha: 0, x: prefersReducedMotion() ? 0 : -12 }, { autoAlpha: 1, x: 0, duration: dur(DUR.card), stagger: rd(0.12), delay: rd(0.3), ease: EASE.out });
+        gsap.fromTo('.details__actions', { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(DUR.card), delay: rd(0.9) });
+      },
+      destroy() {
+        calBtn.removeEventListener('click', onCal);
+      },
+    };
+  });
+</script>
+
+<style>
+  .details {
+    width: 332px;
+    max-width: 86vw;
+    text-align: center;
+  }
+  .details__kicker { color: var(--clr-old-gold); }
+  .details__names {
+    font-size: var(--fs-32);
+    margin-block: var(--sp-1) var(--sp-1);
+  }
+  .details__list {
+    margin: var(--sp-3) auto var(--sp-4);
+    display: grid;
+    gap: var(--sp-2);
+    text-align: left;
+    max-width: 260px;
+  }
+  .details__row {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    align-items: start;
+    gap: var(--sp-2);
+    padding-block: 2px;
+  }
+  .details__icon { padding-top: 2px; }
+  .details__label {
+    font-size: var(--fs-12);
+    color: var(--clr-old-gold);
+  }
+  .details__value {
+    font-size: var(--fs-20);
+    color: var(--clr-coffee);
+    line-height: 1.2;
+  }
+  .details__sub {
+    font-size: var(--fs-14);
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .details__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    align-items: stretch;
+  }
+  .details__actions .btn { width: 100%; }
+</style>

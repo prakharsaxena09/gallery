@@ -1,0 +1,121 @@
+---
+/**
+ * StoryArt.astro — G-series story vignettes (Scene 4). Six symbolic, painterly
+ * scenes sharing one line + wash language: chai meeting, letters, rain walk, the
+ * journey, the rooftop promise, the roka. Restrained — one motif each.
+ */
+type Art = 'meeting' | 'letters' | 'rain' | 'journey' | 'promise' | 'roka';
+interface Props {
+  art: Art;
+  size?: number;
+  class?: string;
+}
+const { art, size = 160, class: className = '' } = Astro.props;
+const gold = 'url(#foil)';
+const ink = '#6a5247';
+const rose = '#caa2a5';
+const leaf = '#5a7c55';
+---
+
+<svg class={`story-art ${className}`} width={size} height={size} viewBox="0 0 160 160" role="img" aria-hidden="true">
+  <!-- shared soft halo -->
+  <circle cx="80" cy="78" r="58" fill="#fff" opacity="0.05" />
+  <circle cx="80" cy="78" r="58" fill="none" stroke={gold} stroke-width="0.8" opacity="0.35" />
+
+  {art === 'meeting' && (
+    <g stroke-linecap="round">
+      <!-- two chai cups -->
+      <g transform="translate(52 86)">
+        <path d="M0 0h22a3 3 0 0 1 0 16H0z" fill="#f1e7d3" stroke={ink} stroke-width="1.6" />
+        <path d="M22 3c8 0 8 10 0 10" fill="none" stroke={ink} stroke-width="1.6" />
+        <ellipse cx="11" cy="0" rx="11" ry="3.4" fill="#a8704a" />
+        <path d="M5 -10c2-4 8-4 10 0" fill="none" stroke={ink} stroke-width="1.2" opacity="0.6" />
+      </g>
+      <g transform="translate(86 92) scale(0.9)">
+        <path d="M0 0h22a3 3 0 0 1 0 16H0z" fill="#f1e7d3" stroke={ink} stroke-width="1.6" />
+        <path d="M22 3c8 0 8 10 0 10" fill="none" stroke={ink} stroke-width="1.6" />
+        <ellipse cx="11" cy="0" rx="11" ry="3.4" fill="#a8704a" />
+        <path d="M5 -10c2-4 8-4 10 0" fill="none" stroke={ink} stroke-width="1.2" opacity="0.6" />
+      </g>
+      <path d="M40 120h80" stroke={gold} stroke-width="1" opacity="0.6" />
+    </g>
+  )}
+
+  {art === 'letters' && (
+    <g>
+      <rect x="44" y="62" width="72" height="48" rx="3" fill="#f1e7d3" stroke={ink} stroke-width="1.6" />
+      <path d="M44 66l36 26 36-26" fill="none" stroke={ink} stroke-width="1.6" />
+      <!-- feather pen -->
+      <path d="M118 50c-10 8-26 26-34 44 14-6 30-20 38-34z" fill={rose} opacity="0.8" stroke={ink} stroke-width="1" />
+      <path d="M118 50l-8 8" stroke={gold} stroke-width="1.4" />
+      <circle cx="84" cy="92" r="2" fill={gold} />
+    </g>
+  )}
+
+  {art === 'rain' && (
+    <g stroke-linecap="round">
+      <!-- umbrella -->
+      <path d="M50 74c4-18 56-18 60 0z" fill={rose} stroke={ink} stroke-width="1.6" />
+      <path d="M50 74c8-6 22-6 30 0M80 74c8-6 22-6 30 0" fill="none" stroke={ink} stroke-width="1" opacity="0.6" />
+      <path d="M80 74v34a6 6 0 0 1-12 0" fill="none" stroke={ink} stroke-width="1.6" />
+      <!-- rain -->
+      {[40, 56, 100, 116].map((x, i) => (
+        <line x1={x} y1={50 + (i % 2) * 8} x2={x - 4} y2={64 + (i % 2) * 8} stroke="#9fb6c4" stroke-width="1.4" />
+      ))}
+      {[48, 108].map((x) => (
+        <line x1={x} y1={92} x2={x - 4} y2={104} stroke="#9fb6c4" stroke-width="1.4" />
+      ))}
+    </g>
+  )}
+
+  {art === 'journey' && (
+    <g fill="none" stroke-linecap="round">
+      <!-- winding path -->
+      <path d="M64 120c-6-20 24-26 16-46s14-30 16-44" stroke={gold} stroke-width="2" stroke-dasharray="2 6" opacity="0.8" />
+      <!-- lanterns along the way -->
+      {[[60, 112], [80, 78], [96, 44]].map(([x, y]) => (
+        <g transform={`translate(${x} ${y})`}>
+          <path d="M-5 0h10l2 8h-14z" fill="#f1e7d3" stroke={ink} stroke-width="1.2" />
+          <circle cy="4" r="3" fill="url(#flame)" />
+        </g>
+      ))}
+    </g>
+  )}
+
+  {art === 'promise' && (
+    <g>
+      <!-- ring under stars -->
+      <circle cx="80" cy="92" r="16" fill="none" stroke={gold} stroke-width="3" />
+      <path d="M74 78l6-12 6 12" fill="none" stroke={gold} stroke-width="2" stroke-linejoin="round" />
+      <path d="M80 66l-3 4 3 3 3-3-3-4z" fill={gold} />
+      {[{ x: 48, y: 52 }, { x: 110, y: 46 }, { x: 120, y: 80 }, { x: 40, y: 86 }].map((p) => (
+        <path d={`M${p.x} ${p.y - 3}l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z`} fill="#e6cf9b" />
+      ))}
+    </g>
+  )}
+
+  {art === 'roka' && (
+    <g>
+      <!-- two hands / clasp suggested by interlocked rings + florals -->
+      <circle cx="70" cy="86" r="14" fill="none" stroke={gold} stroke-width="2.6" />
+      <circle cx="92" cy="86" r="14" fill="none" stroke={gold} stroke-width="2.6" />
+      <g transform="translate(48 110)">
+        {Array.from({ length: 6 }).map((_, k) => (
+          <ellipse cx="0" cy="-6" rx="3.4" ry="6" fill={rose} transform={`rotate(${k * 60})`} />
+        ))}
+        <circle r="2" fill="#e6cf9b" />
+      </g>
+      <g transform="translate(112 110)">
+        {Array.from({ length: 6 }).map((_, k) => (
+          <ellipse cx="0" cy="-6" rx="3.4" ry="6" fill="#fbf8f3" stroke="#e6dccb" stroke-width="0.5" transform={`rotate(${k * 60})`} />
+        ))}
+        <circle r="2" fill="#e6cf9b" />
+      </g>
+      <path d="M40 122c20 8 60 8 80 0" fill="none" stroke={leaf} stroke-width="1.2" opacity="0.6" />
+    </g>
+  )}
+</svg>
+
+<style>
+  .story-art { display: block; margin-inline: auto; }
+</style>
