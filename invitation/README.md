@@ -119,6 +119,25 @@ and updating the paths in `src/lib/audio.ts`.
 
 ---
 
+## Live preview on GitHub Pages (no credentials needed)
+
+A workflow ([`.github/workflows/deploy-invitation.yml`](../.github/workflows/deploy-invitation.yml))
+builds this folder and publishes it to GitHub Pages on every push to the build
+branch. **One-time setup** (repo owner, ~10 seconds):
+
+1. GitHub → **Settings → Pages → Build and deployment → Source: “GitHub Actions”**.
+2. Then **Actions** tab → run **“Deploy invitation to GitHub Pages”** (or push any
+   change); if the first run happened before step 1, just re-run it.
+
+The site goes live at **`https://<owner>.github.io/gallery/`**
+(here: `https://prakharsaxena09.github.io/gallery/`). Try a personalised link:
+`https://prakharsaxena09.github.io/gallery/?to=Aanya`.
+
+The build is base-path aware (`SITE_BASE=/gallery/`), so all fonts, audio and
+images resolve correctly under the project sub-path.
+
+---
+
 ## Deployment (static)
 
 `npm run build` emits a fully static site to `dist/` — host it anywhere:

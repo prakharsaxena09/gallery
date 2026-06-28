@@ -5,7 +5,8 @@
  */
 
 @import './tokens.css';
-@import './fonts.css';
+/* @font-face is declared in Base.astro so the woff2 URLs can carry the deploy
+   base path (see fontFaceCss there). */
 
 *,
 *::before,

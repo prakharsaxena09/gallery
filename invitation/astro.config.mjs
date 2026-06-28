@@ -5,8 +5,11 @@ const r = (p) => fileURLToPath(new URL(p, import.meta.url));
 
 // Static, mobile-first heirloom. No UI framework — Astro components + tiny TS islands.
 // See 06_ENGINEERING_SPEC.md (static deployment, SVG-first, minimal initial JS).
+// `site` + `base` support a GitHub Pages project deploy at /gallery/. Local dev
+// stays at root (SITE_BASE unset → '/'). The CI workflow sets SITE_BASE=/gallery/.
 export default defineConfig({
-  site: 'https://prakhar-pranjali.example',
+  site: process.env.SITE_ORIGIN || 'https://prakharsaxena09.github.io',
+  base: process.env.SITE_BASE || '/',
   output: 'static',
   trailingSlash: 'ignore',
   build: {

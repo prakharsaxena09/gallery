@@ -27,23 +27,27 @@ export type SfxId =
   | 'wind'
   | 'chime';
 
+// Base-aware so the site works at any deploy path (e.g. GitHub Pages /gallery/).
+// BASE_URL always has a trailing slash.
+const A = (file: string): string[] => [`${import.meta.env.BASE_URL}audio/${file}`];
+
 // Self-synthesised, royalty-free WAVs (see tools/generate-audio.mjs). Drop in
-// richer .mp3/.ogg later and update these paths — the manager is format-agnostic.
+// richer .mp3/.ogg later and update these names — the manager is format-agnostic.
 const BED_SRC: Record<BedId, string[]> = {
-  tanpura: ['/audio/tanpura.wav'],
-  sitar: ['/audio/sitar.wav'],
-  strings: ['/audio/strings.wav'],
-  night: ['/audio/night-ambience.wav'],
+  tanpura: A('tanpura.wav'),
+  sitar: A('sitar.wav'),
+  strings: A('strings.wav'),
+  night: A('night-ambience.wav'),
 };
 
 const SFX_SRC: Record<SfxId, string[]> = {
-  paperfold: ['/audio/paper-fold.wav'],
-  waxcrack: ['/audio/wax-crack.wav'],
-  ribbon: ['/audio/ribbon-pull.wav'],
-  lantern: ['/audio/lantern.wav'],
-  bell: ['/audio/temple-bell.wav'],
-  wind: ['/audio/wind.wav'],
-  chime: ['/audio/soft-chime.wav'],
+  paperfold: A('paper-fold.wav'),
+  waxcrack: A('wax-crack.wav'),
+  ribbon: A('ribbon-pull.wav'),
+  lantern: A('lantern.wav'),
+  bell: A('temple-bell.wav'),
+  wind: A('wind.wav'),
+  chime: A('soft-chime.wav'),
 };
 
 const BED_VOLUME = 0.32;
